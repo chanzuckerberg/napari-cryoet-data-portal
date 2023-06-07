@@ -1,0 +1,38 @@
+name: napari-cryoet-data-portal
+display_name: CZII cryoET data portal
+contributions:
+  commands:
+    - id: napari-cryoet-data-portal.DataPortalWidget
+      python_name: napari_cryoet_data_portal._widget:DataPortalWidget
+      title: List and open data
+    - id: napari-cryoet-data-portal.tomogram_ome_zarr_reader
+      python_name: napari_cryoet_data_portal._reader:tomogram_ome_zarr_reader
+      title: Read tomograms in the OME-Zarr format
+    - id: napari-cryoet-data-portal.points_annotations_reader
+      python_name: napari_cryoet_data_portal._reader:points_annotations_reader
+      title: Read points annotations
+    - id: napari-cryoet-data-portal.tomogram_10000_ts_026
+      python_name: napari_cryoet_data_portal._sample_data:tomogram_10000_ts_026
+      title: Tomogram 10000-TS_026
+    - id: napari-cryoet-data-portal.tomogram_10000_ts_027
+      python_name: napari_cryoet_data_portal._sample_data:tomogram_10000_ts_027
+      title: Tomogram 10000-TS_027
+  readers:
+    - command: napari-cryoet-data-portal.tomogram_ome_zarr_reader
+      filename_patterns:
+        - '*.zarr'
+      accepts_directories: true
+    - command: napari-cryoet-data-portal.points_annotations_reader
+      filename_patterns:
+        - '*.json'
+      accepts_directories: false
+  sample_data:
+    - key: tomogram-10000-ts-026
+      display_name: Tomogram 10000-TS_026
+      command: napari-cryoet-data-portal.tomogram_10000_ts_026
+    - key: tomogram-10000-ts-027
+      display_name: Tomogram 10000-TS_027
+      command: napari-cryoet-data-portal.tomogram_10000_ts_027
+  widgets:
+    - command: napari-cryoet-data-portal.DataPortalWidget
+      display_name: List and open data
