@@ -9,7 +9,7 @@
 
 List and open tomograms from the [CZII cryoET data portal] in [napari].
 
-https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/5ad75c51-61f2-4695-8a50-8f9199e63f20
+https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1542b136-718a-490c-b907-65c1dfb6ccd9
 
 ## Installation
 
@@ -21,27 +21,27 @@ You can install the latest development version using [pip]:
 
 Click the *Connect* button to establish a connection to the data portal.
 
-![Connect button and editable URI to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/96ccb89a-f926-4a8f-945b-450e65969855)
+![Connect button and editable URI to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/bad1dbb7-2752-4b1a-b9d2-d0d685e4536c)
 
 After connecting to the portal, datasets are added below as they are found.
 
-![Datasets and tomograms in the portal shown as an interactive tree](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/9562b530-a0f8-4c99-80d2-89e26391f23d)
+![Datasets and tomograms in the portal shown as an interactive tree](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/47ececbd-40e6-4374-9c64-18a07ce36bf2)
 
 Datasets and tomograms can be filtered by specifying a regular expression pattern.
 
-![Datasets and tomograms filtered by the text 26, so that only two are shown](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/a15b27b2-aa1b-4704-af24-36e66805da02)
+![Datasets and tomograms filtered by the text 26, so that only two are shown](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/437cb5e3-ac53-4fc0-83a9-53cd4c9f67c1)
 
 Selecting a dataset displays its metadata, which can be similarly explored and filtered.
 
-![Metadata of dataset 10000 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1e88f78e-47e5-4bfc-84a1-06f8c038f4a4)
+![Metadata of dataset 10000 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/f9793891-84e9-4a82-af2f-51b68bcf4287)
 
 Selecting a tomogram displays its metadata and also opens the lowest resolution tomogram and all of its associated point annotations in the napari viewer.
 
-![Metadata of tomogram TS_026 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/f0772092-a2b0-406e-a42f-989c513b3bf6)
+![Metadata of tomogram TS_026 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1dabcaa0-c232-4b1d-adc7-b431b4a80418)
 
 Higher resolution tomograms can be loaded instead by selecting a different resolution and clicking the *Open* button.
 
-![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/fe5c0081-1658-43c0-9cbe-0d997e207b62)
+![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/9132c68a-dd8e-420b-b31e-746baa9fc2bd)
 
 In this case, napari only loads the data that needs to be displayed in the canvas.
 While this can reduce the amount of data loaded, it may also cause performance problems when initially opening and exploring the data.
@@ -50,7 +50,7 @@ In general, finding and fetching data from the portal can take a long time.
 All plugin operations that fetch data from the portal try to run concurrently in order to keep interaction with napari and the plugin as responsive as possible.
 These operations can also be cancelled by clicking the *Cancel* button.
 
-![Screenshot 2023-06-07 at 2 38 41 PM](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/3f621a8a-0962-4a25-bee0-3596cec58659)
+![Progress bar with loading status and cancel button](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/b0ba4a69-5f24-4aaf-99d5-37541cfff17f)
 
 ## Contributing
 
