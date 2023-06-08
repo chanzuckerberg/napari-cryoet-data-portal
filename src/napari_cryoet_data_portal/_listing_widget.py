@@ -66,7 +66,7 @@ class ListingWidget(QGroupBox):
         item = QTreeWidgetItem((text,))
         item.setData(0, Qt.ItemDataRole.UserRole, dataset)
         for tomogram in tomograms:
-            tomogram_item = QTreeWidgetItem((str(tomogram.id),))
+            tomogram_item = QTreeWidgetItem((tomogram.name,))
             tomogram_item.setData(0, Qt.ItemDataRole.UserRole, tomogram)
             item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)

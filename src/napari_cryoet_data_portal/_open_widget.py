@@ -92,7 +92,7 @@ class OpenWidget(QGroupBox):
         # Reset resolution to low to handle case when user tries
         # out a higher resolution but then moves onto another tomogram.
         self.resolution.setCurrentText(LOW_RESOLUTION.name)
-        self.setTitle(f"Tomogram: {tomogram.id}")
+        self.setTitle(f"Tomogram: {tomogram.name}")
         self.show()
         self.load()
 
@@ -111,7 +111,7 @@ class OpenWidget(QGroupBox):
         tomogram: Tomogram,
         resolution: Resolution,
     ) -> Generator[FullLayerData, None, None]:
-        logger.debug("OpenWidget._loadTomogram: %s", tomogram.id)
+        logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
         image_data, image_attrs, _ = read_tomogram_ome_zarr(tomogram.https_omezarr_dir)
         image_attrs["name"] = f"{tomogram.name}-tomogram"
         # Skip indexing for multi-resolution to avoid adding any
