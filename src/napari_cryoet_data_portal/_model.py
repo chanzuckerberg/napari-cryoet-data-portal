@@ -39,7 +39,7 @@ class Subject:
         (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr').
     annotation_paths : tuple of str
         The full file-like paths to the annotation JSON files.
-        (e.g. ['s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/julia_mahamid-ribosome-1.0.json', ...]).
+        (e.g. ['s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/sara_goetz-ribosome-1.0.json', ...]).
     """
 
     name: str
