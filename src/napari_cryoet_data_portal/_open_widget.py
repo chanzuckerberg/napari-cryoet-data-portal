@@ -127,7 +127,10 @@ class OpenWidget(QGroupBox):
         yield image_data, image_attrs, "image"
 
         for annotation in tomogram.run.annotations:
-            yield read_annotation_points(annotation)
+            data, attrs, layer_type = read_annotation_points(annotation)
+            name = attrs["name"]
+            attrs["name"] = f"{tomogram.name}-{name}"
+            yield data, attrs, layer_type
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")

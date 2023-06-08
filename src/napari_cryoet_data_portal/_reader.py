@@ -108,7 +108,7 @@ def read_annotation_points(annotation: Annotation) -> FullLayerData:
     >>> points = Points(data, **attrs)
     """
     data, attributes, layer_type = read_points_annotations_ndjson(annotation.https_annotations_path)
-    attributes["name"] = annotation.id
+    attributes["name"] = annotation.object_name
     attributes["metadata"] = annotation.to_dict()
     return data, attributes, layer_type
 
