@@ -20,12 +20,12 @@ def tomogram_10000_ts_027() -> List[FullLayerData]:
 
 
 def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
-    base_uri = f"s3://cryoet-data-portal-public/10000/{name}/Tomograms"
+    base_uri = f"s3://cryoet-data-portal-public/10000/{name}/Tomograms/VoxelSpacing13.48"
     tomogram_uri = f"{base_uri}/CanonicalTomogram/{name}.zarr"
     annotations_uri = f"{base_uri}/Annotations"
-    ribosome_uri = f"{annotations_uri}/julia_mahamid-ribosome-1.0.json"
+    ribosome_uri = f"{annotations_uri}/sara_goetz-ribosome-1.0.json"
     fatty_acid_uri = (
-        f"{annotations_uri}/julia_mahamid-fatty_acid_synthase-1.0.json"
+        f"{annotations_uri}/sara_goetz-fatty_acid_synthase-1.0.json"
     )
 
     tomogram_image = read_tomogram_ome_zarr(tomogram_uri)
