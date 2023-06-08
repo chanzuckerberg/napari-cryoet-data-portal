@@ -6,11 +6,11 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Client, Tomogram
 
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._model import Subject
 from napari_cryoet_data_portal._open_widget import OpenWidget
 from napari_cryoet_data_portal._uri_widget import UriWidget
 
@@ -25,6 +25,8 @@ class DataPortalWidget(QWidget):
         self, napari_viewer: "ViewerModel", parent: Optional[QWidget] = None
     ) -> None:
         super().__init__(parent)
+
+        self._client: Optional[Client] = None
 
         self._uri = UriWidget()
 
@@ -52,12 +54,14 @@ class DataPortalWidget(QWidget):
 
         self.setLayout(layout)
 
-    def _onUriConnected(self, uri: str) -> None:
+    def _onUriConnected(self, client: Client) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
-        self._listing.load(uri)
+        self._client = client
+        self._listing.load(client)
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")
+        self._client = None
         for widget in (self._listing, self._metadata, self._open):
             widget.cancel()
             widget.hide()
@@ -68,7 +72,7 @@ class DataPortalWidget(QWidget):
         logger.debug("DataPortalWidget._onListingItemClicked: %s", item)
         data = item.data(0, Qt.ItemDataRole.UserRole)
         self._metadata.load(data)
-        if isinstance(data, Subject):
-            self._open.setSubject(data)
+        if isinstance(data, Tomogram):
+            self._open.setTomogram(data)
         else:
             self._open.hide()

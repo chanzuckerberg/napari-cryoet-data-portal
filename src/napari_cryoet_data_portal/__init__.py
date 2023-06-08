@@ -5,7 +5,7 @@ except ImportError:
 from ._logging import logger
 from ._reader import (
     points_annotations_reader,
-    read_points_annotations_json,
+    read_points_annotations_ndjson,
     read_tomogram_ome_zarr,
     tomogram_ome_zarr_reader,
 )
@@ -16,6 +16,6 @@ __all__ = (
     "logger",
     "points_annotations_reader",
     "read_tomogram_ome_zarr",
-    "read_points_annotations_json",
+    "read_points_annotations_ndjson",
     "tomogram_ome_zarr_reader",
 )

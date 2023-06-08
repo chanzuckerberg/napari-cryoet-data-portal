@@ -5,10 +5,9 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Dataset, Tomogram
 
-from napari_cryoet_data_portal._io import read_json
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Dataset, Subject
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import (
     QSearchableTreeWidget,
@@ -33,10 +32,10 @@ class MetadataWidget(QGroupBox):
         layout.addStretch(0)
         self.setLayout(layout)
 
-    def load(self, data: Union[Dataset, Subject]) -> None:
+    def load(self, data: Union[Dataset, Tomogram]) -> None:
         logger.debug("MetadataWidget.load: %s", data)
         self._main.tree.clear()
-        self.setTitle(f"Metadata: {data.name}")
+        self.setTitle(f"Metadata: {data.id}")
         self.show()
         self._progress.submit(data)
 
@@ -44,16 +43,9 @@ class MetadataWidget(QGroupBox):
         logger.debug("MetadataWidget.cancel")
         self._progress.cancel()
 
-    def _loadMetadata(self, data: Union[Dataset, Subject]) -> Dict[str, Any]:
+    def _loadMetadata(self, data: Union[Dataset, Tomogram]) -> Dict[str, Any]:
         logger.debug("MetadataWidget._loadMetadata: %s", data)
-        path = ""
-        if isinstance(data, Dataset):
-            path = data.metadata_path
-        elif isinstance(data, Subject):
-            path = data.tomogram_metadata_path
-        else:
-            raise AssertionError("Expected Dataset or Subject data")
-        return read_json(path)
+        return data.to_dict()
 
     def _onMetadataLoaded(self, metadata: Dict[str, Any]) -> None:
         logger.debug("MetadataWidget._onMetadataLoaded: %s", metadata)

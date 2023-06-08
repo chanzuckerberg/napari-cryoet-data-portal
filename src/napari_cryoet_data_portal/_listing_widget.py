@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Generator, List, Optional, Tuple
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -8,11 +8,10 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Client, Dataset, Tomogram
 
-from napari_cryoet_data_portal._io import list_dir
 from napari_cryoet_data_portal._listing_tree_widget import ListingTreeWidget
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Dataset
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import (
     _update_visible_items,
@@ -42,35 +41,33 @@ class ListingWidget(QGroupBox):
         layout.addStretch(0)
         self.setLayout(layout)
 
-    def load(self, path: str) -> None:
-        logger.debug("ListingWidget.load: %s", path)
+    def load(self, client: Client) -> None:
+        logger.debug("ListingWidget.load: %s", client)
         self.tree.clear()
         self.show()
-        self._progress.submit(path)
+        self._progress.submit(client)
 
     def cancel(self) -> None:
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 
-    def _loadDatasets(self, path: str) -> Generator[Dataset, None, None]:
-        logger.debug("ListingWidget._loadDatasets: %s", path)
-        # TODO: only list non-hidden directories.
-        dataset_names = tuple(
-            p for p in list_dir(path) if not p.startswith(".")
-        )
-        if len(dataset_names) == 0:
-            logger.debug("No datasets found")
-        for name in dataset_names:
-            yield Dataset.from_data_path_and_name(path, name)
+    def _loadDatasets(self, client: str) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+        logger.debug("ListingWidget._loadDatasets: %s", client)
+        for dataset in Dataset.find(client):
+            tomograms: List[Tomogram] = []
+            for run in dataset.runs:
+                tomograms.extend(run.tomograms)
+            yield dataset, tomograms
 
-    def _onDatasetLoaded(self, dataset: Dataset) -> None:
-        logger.debug("ListingWidget._onDatasetLoaded: %s", dataset.name)
-        text = f"{dataset.name} ({len(dataset.subjects)})"
+    def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
+        dataset, tomograms = result
+        logger.debug("ListingWidget._onDatasetLoaded: %s", dataset.id)
+        text = f"{dataset.id} ({len(tomograms)})"
         item = QTreeWidgetItem((text,))
         item.setData(0, Qt.ItemDataRole.UserRole, dataset)
-        for s in dataset.subjects:
-            subject_item = QTreeWidgetItem((s.name,))
-            subject_item.setData(0, Qt.ItemDataRole.UserRole, s)
-            item.addChild(subject_item)
+        for tomogram in tomograms:
+            tomogram_item = QTreeWidgetItem((str(tomogram.id),))
+            tomogram_item.setData(0, Qt.ItemDataRole.UserRole, tomogram)
+            item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)
         self.tree.addTopLevelItem(item)

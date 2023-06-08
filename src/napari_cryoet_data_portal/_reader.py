@@ -1,14 +1,12 @@
 """Functions to read data from the portal into napari types."""
 
-import json
-import os
 from typing import Any, Dict, List, Optional, Tuple
+import fsspec
 
 import ndjson
 from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
-
-from napari_cryoet_data_portal._io import get_open, read_json, s3_to_https
+from cryoet_data_portal import Annotation
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -19,10 +17,6 @@ def _read_many_tomograms_ome_zarr(paths: PathOrPaths) -> List[FullLayerData]:
     if isinstance(paths, str):
         paths = [paths]
     return [read_tomogram_ome_zarr(p) for p in paths]
-
-
-def read_tomogram_metadata(path: str) -> Dict[str, Any]:
-    return read_json(path)
 
 
 def read_tomogram_ome_zarr(path: str) -> FullLayerData:
@@ -45,7 +39,6 @@ def read_tomogram_ome_zarr(path: str) -> FullLayerData:
     >>> data, attrs, _ = read_tomogram_ome_zarr('s3://cryoet-data-portal-public/10000/TS_026/Tomograms/CanonicalTomogram/TS_026.zarr')
     >>> image = Image(data, **attrs)
     """
-    path = s3_to_https(path)
     reader = napari_get_reader(path)
     layers = reader(path)
     return layers[0]
@@ -57,7 +50,7 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
     Parameters
     ----------
     path : str or sequence of str
-        The path or paths of the annotation JSON file(s) to read.
+        The path or paths of the annotation NDJSON file(s) to read.
 
     Returns
     -------
@@ -70,26 +63,37 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
 
     Examples
     --------
-    >>> path = ['julia_mahamid-ribosome-1.0.json', 'julia_mahamid-fatty_acid_synthase-1.0.json']
+    >>> path = ['julia_mahamid-ribosome-1.0.ndjson', 'julia_mahamid-fatty_acid_synthase-1.0.ndjson']
     >>> reader = points_annotations_reader(path)
     >>> data, attrs, _ = reader(path)
     """
-    return _read_many_points_annotations
+    return _read_many_points_annotations_ndjson
 
 
-def _read_many_points_annotations(paths: PathOrPaths) -> List[FullLayerData]:
+def _read_many_points_annotations_ndjson(paths: PathOrPaths) -> List[FullLayerData]:
     if isinstance(paths, str):
         paths = [paths]
-    return [read_points_annotations_json(p) for p in paths]
+    return [read_points_annotations_ndjson(p) for p in paths]
 
 
-def read_points_annotations_json(path: str) -> FullLayerData:
-    """Reads a napari points layer from one annotation JSON File.
+def read_points_annotations_ndjson(path: str) -> FullLayerData:
+    data = _read_points_data(path)
+    attributes = {
+        "name": "annotations",
+        "size": 14,
+        "face_color": "red",
+        "opacity": 0.5,
+    }
+    return data, attributes, "points"
+
+
+def read_annotation_points(annotation: Annotation) -> FullLayerData:
+    """Reads a napari points layer from an annotation.
 
     Parameters
     ----------
-    path : str
-        The path of the annotation JSON file to read.
+    annotation : Annotation
+        The tomogram annotation.
 
     Returns
     -------
@@ -100,35 +104,20 @@ def read_points_annotations_json(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Points
-    >>> data, attrs, _ = read_points_annotations_json('julia_mahamid-ribosome-1.0.json')
+    >>> data, attrs, _ = read_annotation_points('julia_mahamid-ribosome-1.0.json')
     >>> points = Points(data, **attrs)
     """
-    data: List[Tuple[float, float, float]] = []
-    open_ = get_open(path)
-    with open_(path) as f:
-        metadata = json.load(f)
-    data_dir = os.path.dirname(path)
-    for sub_file in metadata["files"]:
-        sub_name = sub_file["file"]
-        sub_path = f"{data_dir}/{sub_name}"
-        sub_data = _read_points_annotations_ndjson(sub_path)
-        data.extend(sub_data)
-    attributes = {
-        "name": metadata["annotation_object"]["name"],
-        "metadata": metadata,
-        "size": 14,
-        "face_color": "red",
-        "opacity": 0.5,
-    }
-    return data, attributes, "points"
+    data, attributes, layer_type = read_points_annotations_ndjson(annotation.https_annotations_path)
+    attributes["name"] = annotation.id
+    attributes["metadata"] = annotation.to_dict()
+    return data, attributes, layer_type
 
 
-def _read_points_annotations_ndjson(
+def _read_points_data(
     path: str,
 ) -> List[Tuple[float, float, float]]:
     data: List[Tuple[float, float, float]] = []
-    open_ = get_open(path)
-    with open_(path) as f:
+    with fsspec.open(path) as f:
         sub_data = [
             _annotation_to_point(annotation)
             for annotation in ndjson.load(f)

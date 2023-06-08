@@ -11,15 +11,16 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Client
 
-from napari_cryoet_data_portal._io import path_exists
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import PORTAL_S3_URI
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 
 
+GRAPHQL_URI = "https://graphql.cryoetdataportal.cziscience.com/v1/graphql"
+
 class UriWidget(QGroupBox):
-    connected = Signal(str)
+    connected = Signal(object)
     disconnected = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -28,7 +29,7 @@ class UriWidget(QGroupBox):
         self.setTitle("Portal")
         self._connect_button = QPushButton("Connect")
         self._disconnect_button = QPushButton("Disconnect")
-        self._uri_edit = QLineEdit(PORTAL_S3_URI)
+        self._uri_edit = QLineEdit(GRAPHQL_URI)
         self._uri_edit.setCursorPosition(0)
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
         choose_dir_icon = self.style().standardIcon(
@@ -36,8 +37,8 @@ class UriWidget(QGroupBox):
         )
         self._choose_dir_button = QPushButton(choose_dir_icon, "")
         self._progress = ProgressWidget(
-            work=self._checkUri,
-            returnCallback=self._onUriChecked,
+            work=self._connect,
+            returnCallback=self._onConnected,
         )
         self._updateVisibility(False)
 
@@ -70,18 +71,13 @@ class UriWidget(QGroupBox):
         self._updateVisibility(False)
         self.disconnected.emit()
 
-    def _checkUri(self, uri: str) -> Tuple[bool, str]:
-        logger.debug("UriWidget._checkUri: %s", uri)
-        return path_exists(uri), uri
+    def _connect(self, uri: str) -> Client:
+        return Client(uri)
 
-    def _onUriChecked(self, result: Tuple[bool, str]) -> None:
-        logger.debug("UriWidget._onUriChecked: %s", result)
-        exists, uri = result
-        self._updateVisibility(exists)
-        if exists:
-            self.connected.emit(uri)
-        else:
-            raise ValueError(f"CryoET data portal not found at: {uri}")
+    def _onConnected(self, client: Client) -> None:
+        logger.debug("UriWidget._onConnected: %s", client)
+        self._updateVisibility(True)
+        self.connected.emit(client)
 
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
@@ -91,6 +87,6 @@ class UriWidget(QGroupBox):
         self._uri_edit.setReadOnly(uri_exists)
 
     def _onChooseDirClicked(self) -> None:
-        logger.debug("DataPathWidget._onChooseDirClicked")
+        logger.debug("UriWidget._onChooseDirClicked")
         path = QFileDialog.getExistingDirectory(self)
         self._uri_edit.setText(path)
