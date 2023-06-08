@@ -9,8 +9,8 @@ from napari_cryoet_data_portal import (
 )
 from napari_cryoet_data_portal._model import PORTAL_S3_URI
 
-TOMOGRAM_DIR = f"{PORTAL_S3_URI}/10000/TS_026/Tomograms"
-ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/julia_mahamid-ribosome-1.0.json"
+TOMOGRAM_DIR = f"{PORTAL_S3_URI}/10000/TS_026/Tomograms/VoxelSpacing13.48"
+ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/sara_goetz-ribosome-1.0.json"
 
 
 def test_read_tomogram_ome_zarr():

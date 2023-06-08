@@ -42,7 +42,7 @@ def read_tomogram_ome_zarr(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Image
-    >>> data, attrs, _ = read_tomogram_ome_zarr('s3://cryoet-data-portal-public/10000/TS_026/Tomograms/CanonicalTomogram/TS_026.zarr')
+    >>> data, attrs, _ = read_tomogram_ome_zarr('s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr')
     >>> image = Image(data, **attrs)
     """
     path = s3_to_https(path)

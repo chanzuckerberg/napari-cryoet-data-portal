@@ -8,6 +8,17 @@ from napari_cryoet_data_portal._io import list_dir
 
 PORTAL_S3_URI = "s3://cryoet-data-portal-public"
 
+# TODO: hardcoding these correspondences as a short term fix
+# for the recent bucket layout change which avoids an extra listing
+# call to s3. Need a long term fix here, which likely uses the main
+# Python client.
+DATASET_TO_SPACING = {
+    '10000': 'VoxelSpacing13.48',
+    '10001': 'VoxelSpacing13.48',
+    '10004': 'VoxelSpacing7.56',
+}
+DEFAULT_SPACING = 'VoxelSpacing13.48'
+
 
 @dataclass(frozen=True)
 class Subject:
@@ -20,23 +31,27 @@ class Subject:
     path : str
         The full directory-like path associated with the subject
         (e.g. 's3://cryoet-data-portal-public/10000/TS_026').
+    tomogram_path : str
+        The full directory-like path to the tomogram directory that contains the volumes and annotations.
+        (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48').
     image_path : str
         The full directory-like path to the tomogram as an OME-Zarr multi-scale image
-        (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/CanonicalTomogram/TS_026.zarr').
+        (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr').
     annotation_paths : tuple of str
         The full file-like paths to the annotation JSON files.
-        (e.g. ['s3://cryoet-data-portal-public/10000/TS_026/Tomograms/Annotations/julia_mahamid-ribosome-1.0.json', ...]).
+        (e.g. ['s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/julia_mahamid-ribosome-1.0.json', ...]).
     """
 
     name: str
     path: str
+    tomogram_path: str
     image_path: str
     annotation_paths: Tuple[str, ...]
 
     @cached_property
     def tomogram_metadata_path(self) -> str:
         return (
-            f"{self.path}/Tomograms/CanonicalTomogram/tomogram_metadata.json"
+            f"{self.tomogram_path}/CanonicalTomogram/tomogram_metadata.json"
         )
 
     @classmethod
@@ -44,9 +59,11 @@ class Subject:
         cls, dataset_path: str, name: str
     ) -> "Subject":
         path = f"{dataset_path}/{name}"
-        layer_path = f"{path}/Tomograms"
-        image_path = f"{layer_path}/CanonicalTomogram/{name}.zarr"
-        annotation_dir = f"{layer_path}/Annotations"
+        dataset_name = dataset_path.split('/')[-1]
+        spacing = DATASET_TO_SPACING.get(dataset_name, DEFAULT_SPACING)
+        tomogram_path = f"{path}/Tomograms/{spacing}"
+        image_path = f"{tomogram_path}/CanonicalTomogram/{name}.zarr"
+        annotation_dir = f"{tomogram_path}/Annotations"
         annotation_paths = tuple(
             f"{annotation_dir}/{p}"
             for p in list_dir(annotation_dir)
@@ -55,6 +72,7 @@ class Subject:
         return cls(
             name=name,
             path=path,
+            tomogram_path=tomogram_path,
             image_path=image_path,
             annotation_paths=annotation_paths,
         )

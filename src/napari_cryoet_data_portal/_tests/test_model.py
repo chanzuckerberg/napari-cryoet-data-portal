@@ -20,6 +20,6 @@ def test_subject_from_dataset_path_and_name():
     assert subject.path == f"{dataset_dir}/TS_026"
     assert (
         subject.image_path
-        == f"{dataset_dir}/TS_026/Tomograms/CanonicalTomogram/TS_026.zarr"
+        == f"{dataset_dir}/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr"
     )
     assert len(subject.annotation_paths) > 0
