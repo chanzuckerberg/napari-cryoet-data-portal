@@ -66,6 +66,11 @@ class DataPortalWidget(QWidget):
         self, item: QTreeWidgetItem, old_item: QTreeWidgetItem
     ) -> None:
         logger.debug("DataPortalWidget._onListingItemClicked: %s", item)
+        # The new current item can be none when reconnecting since that
+        # clears the listing tree.
+        if item is None:
+            self._metadata.hide()
+            self._open.hide()
         data = item.data(0, Qt.ItemDataRole.UserRole)
         self._metadata.load(data)
         if isinstance(data, Subject):
