@@ -10,8 +10,8 @@ from napari_cryoet_data_portal import (
 )
 
 CLOUDFRONT_URI = "https://files.cryoetdataportal.cziscience.com"
-TOMOGRAM_DIR = f"{CLOUDFRONT_URI}/10000/TS_026/Tomograms"
-ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/julia_mahamid-ribosome-1.0.ndjson"
+TOMOGRAM_DIR = f"{CLOUDFRONT_URI}/10000/TS_026/Tomograms/VoxelSpacing13.48"
+ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/sara_goetz-ribosome-1.0.ndjson"
 
 
 def test_read_tomogram_ome_zarr():

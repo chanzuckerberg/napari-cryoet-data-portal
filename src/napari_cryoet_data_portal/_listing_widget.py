@@ -56,7 +56,8 @@ class ListingWidget(QGroupBox):
         for dataset in Dataset.find(client):
             tomograms: List[Tomogram] = []
             for run in dataset.runs:
-                tomograms.extend(run.tomograms)
+                for spacing in run.tomogram_voxel_spacings:
+                    tomograms.extend(spacing.tomograms)
             yield dataset, tomograms
 
     def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:

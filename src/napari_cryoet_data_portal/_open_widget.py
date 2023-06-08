@@ -13,7 +13,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Tomogram
+from cryoet_data_portal import Annotation, Client, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
@@ -126,7 +126,14 @@ class OpenWidget(QGroupBox):
         )
         yield image_data, image_attrs, "image"
 
-        for annotation in tomogram.run.annotations:
+        # Looking up tomogram.tomogram_voxel_spacing.annotations triggers a query
+        # using the client from where the tomogram was found.
+        # A single client is not thread safe, so we need a new instance for each query.
+        # TODO: pass through URI in setTomogram from main widget.
+        client = Client()
+        annotations = Annotation.find(client, [Annotation.tomogram_voxel_spacing_id == tomogram.tomogram_voxel_spacing_id])
+
+        for annotation in annotations:
             data, attrs, layer_type = read_annotation_points(annotation)
             name = attrs["name"]
             attrs["name"] = f"{tomogram.name}-{name}"
