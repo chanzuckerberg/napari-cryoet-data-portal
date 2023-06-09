@@ -71,6 +71,7 @@ class DataPortalWidget(QWidget):
         if item is None:
             self._metadata.hide()
             self._open.hide()
+            return
         data = item.data(0, Qt.ItemDataRole.UserRole)
         self._metadata.load(data)
         if isinstance(data, Subject):
