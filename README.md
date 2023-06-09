@@ -54,7 +54,7 @@ These operations can also be cancelled by clicking the *Cancel* button.
 
 ## Contributing
 
-Contributions and ideas are welcome!
+This is still in early development, but contributions and ideas are welcome!
 Don't hesitate to [open an issue] or [open a pull request] to help improve this plugin.
 
 This project adheres to the [Contributor Covenant code of conduct].
