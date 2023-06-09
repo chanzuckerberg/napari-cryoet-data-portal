@@ -130,6 +130,7 @@ def read_points_annotations_json(path: str) -> FullLayerData:
         "size": 14,
         "face_color": face_color,
         "opacity": 0.5,
+        "out_of_slice_display": True,
     }
     return data, attributes, "points"
 
