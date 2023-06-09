@@ -11,6 +11,14 @@ from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 from napari_cryoet_data_portal._io import get_open, read_json, s3_to_https
 
 
+OBJECT_COLOR = {
+    'ribosome': 'red',
+    'ribosome, 80 s': 'red',
+    'fatty acid synthase': 'darkblue',
+}
+DEFAULT_OBJECT_COLOR = 'red'
+
+
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
     return _read_many_tomograms_ome_zarr
 
@@ -113,11 +121,12 @@ def read_points_annotations_json(path: str) -> FullLayerData:
         sub_path = f"{data_dir}/{sub_name}"
         sub_data = _read_points_annotations_ndjson(sub_path)
         data.extend(sub_data)
+    face_color = _annotation_color(metadata)
     attributes = {
         "name": metadata["annotation_object"]["name"],
         "metadata": metadata,
         "size": 14,
-        "face_color": "red",
+        "face_color": face_color,
         "opacity": 0.5,
     }
     return data, attributes, "points"
@@ -136,6 +145,11 @@ def _read_points_annotations_ndjson(
         ]
         data.extend(sub_data)
     return data
+
+
+def _annotation_color(metadata: Dict[str, Any]) -> 'str':
+    name = metadata["annotation_object"]["name"].lower()
+    return OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
 
 
 def _annotation_to_point(
