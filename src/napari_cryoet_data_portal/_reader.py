@@ -121,9 +121,11 @@ def read_points_annotations_json(path: str) -> FullLayerData:
         sub_path = f"{data_dir}/{sub_name}"
         sub_data = _read_points_annotations_ndjson(sub_path)
         data.extend(sub_data)
-    face_color = _annotation_color(metadata)
+    anno_object = metadata["annotation_object"]
+    name = anno_object["name"]
+    face_color = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
     attributes = {
-        "name": metadata["annotation_object"]["name"],
+        "name": name,
         "metadata": metadata,
         "size": 14,
         "face_color": face_color,
@@ -145,11 +147,6 @@ def _read_points_annotations_ndjson(
         ]
         data.extend(sub_data)
     return data
-
-
-def _annotation_color(metadata: Dict[str, Any]) -> 'str':
-    name = metadata["annotation_object"]["name"].lower()
-    return OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
 
 
 def _annotation_to_point(
