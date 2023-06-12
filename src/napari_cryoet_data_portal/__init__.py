@@ -13,7 +13,6 @@ from ._widget import DataPortalWidget
 
 __all__ = (
     "DataPortalWidget",
-    "logger",
     "points_annotations_reader",
     "read_tomogram_ome_zarr",
     "read_points_annotations_json",
