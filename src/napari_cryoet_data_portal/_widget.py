@@ -24,7 +24,7 @@ class DataPortalWidget(QWidget):
     This consists of a few privately defined sub-widgets, each of which
     has its own task with respect to the data portal like the initial
     connection or reading metadata from a dataset or tomogram.
-    Each task is typically run asynchronously and can be cancelled.
+    Each task is run asynchronously and can be cancelled.
 
     Examples
     --------

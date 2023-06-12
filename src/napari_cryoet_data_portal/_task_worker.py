@@ -13,6 +13,8 @@ WorkType = Union[
 
 
 class TaskWorker(QObject, Generic[YieldType, SendType, ReturnType]):
+    """Adds a unique numeric ID to a superqt worker and its signals."""
+
     yielded = Signal(int, object)
     returned = Signal(int, object)
     finished = Signal(int)

@@ -19,7 +19,11 @@ from napari_cryoet_data_portal._progress_widget import ProgressWidget
 
 
 class UriWidget(QGroupBox):
+    """Connects to a data portal with a specific URI."""
+
+    # Emitted on successful connection to the URI it contains.
     connected = Signal(str)
+    # Emitted when disconnecting from the portal.
     disconnected = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:

@@ -48,6 +48,8 @@ RESOLUTIONS: Tuple[Resolution] = (
 
 
 class OpenWidget(QGroupBox):
+    """Opens a tomogram and its annotations at a specific resolution."""
+
     def __init__(
         self, viewer: "ViewerModel", parent: Optional[QWidget] = None
     ) -> None:
@@ -87,6 +89,7 @@ class OpenWidget(QGroupBox):
         self.setLayout(layout)
 
     def setSubject(self, subject: Subject) -> None:
+        """Sets the current tomogram that should be opened."""
         self.cancel()
         self._subject = subject
         # Reset resolution to low to handle case when user tries
@@ -97,12 +100,14 @@ class OpenWidget(QGroupBox):
         self.load()
 
     def load(self) -> None:
+        """Loads the current tomogram at the current resolution."""
         resolution = self.resolution.currentData()
         logger.debug("OpenWidget.load: %s", self._subject, resolution)
         self._viewer.layers.clear()
         self._progress.submit(self._subject, resolution)
 
     def cancel(self) -> None:
+        """Cancels the last tomogram load."""
         logger.debug("OpenWidget.cancel")
         self._progress.cancel()
 

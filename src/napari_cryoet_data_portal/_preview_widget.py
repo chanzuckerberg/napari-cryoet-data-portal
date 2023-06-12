@@ -18,6 +18,8 @@ from napari_cryoet_data_portal._reader import read_tomogram_ome_zarr
 
 
 class PreviewWidget(QGroupBox):
+    """Previews tomograms as a list of thumbnail images."""
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
@@ -35,12 +37,14 @@ class PreviewWidget(QGroupBox):
         self.setLayout(layout)
 
     def load(self, data: Dataset) -> None:
+        """Previews the tomograms of the given dataset."""
         logger.debug("PreviewWidget.load: %s", data.name)
         self.list.clear()
         self.show()
         self._progress.submit(data)
 
     def cancel(self) -> None:
+        """Cancels the last dataset preview load."""
         logger.debug("PreviewWidget.cancel")
         self._progress.cancel()
 

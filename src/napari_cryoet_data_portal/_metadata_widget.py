@@ -16,6 +16,8 @@ from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import 
 
 
 class MetadataWidget(QGroupBox):
+    """Displays the JSON metadata of a dataset or tomogram in the portal."""
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
@@ -34,6 +36,7 @@ class MetadataWidget(QGroupBox):
         self.setLayout(layout)
 
     def load(self, data: Union[Dataset, Subject]) -> None:
+        """Loads the JSON metadata of the given dataset or tomogram."""
         logger.debug("MetadataWidget.load: %s", data)
         self._main.tree.clear()
         self.setTitle(f"Metadata: {data.name}")
@@ -41,6 +44,7 @@ class MetadataWidget(QGroupBox):
         self._progress.submit(data)
 
     def cancel(self) -> None:
+        """Cancels the last metadata load."""
         logger.debug("MetadataWidget.cancel")
         self._progress.cancel()
 
