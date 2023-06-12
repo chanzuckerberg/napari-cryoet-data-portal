@@ -11,6 +11,14 @@ from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 from napari_cryoet_data_portal._io import get_open, s3_to_https
 
 
+OBJECT_COLOR = {
+    'ribosome': 'red',
+    'ribosome, 80 s': 'red',
+    'fatty acid synthase': 'darkblue',
+}
+DEFAULT_OBJECT_COLOR = 'red'
+
+
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
     """napari plugin entry point for reading tomograms in the OME-Zarr format.
 
@@ -139,12 +147,16 @@ def read_points_annotations_json(path: str) -> FullLayerData:
         sub_path = f"{data_dir}/{sub_name}"
         sub_data = _read_points_annotations_ndjson(sub_path)
         data.extend(sub_data)
+    anno_object = metadata["annotation_object"]
+    name = anno_object["name"]
+    face_color = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
     attributes = {
-        "name": metadata["annotation_object"]["name"],
+        "name": name,
         "metadata": metadata,
         "size": 14,
-        "face_color": "red",
+        "face_color": face_color,
         "opacity": 0.5,
+        "out_of_slice_display": True,
     }
     return data, attributes, "points"
 

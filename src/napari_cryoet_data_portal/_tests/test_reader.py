@@ -34,6 +34,7 @@ def test_read_points_annotations_json():
     assert data[418] == (524, 831, 475)
     assert data[837] == (519, 723, 538)
     assert attrs["name"] == "Ribosome"
+    assert attrs["face_color"] == "red"
     assert layer_type == "points"
 
 
