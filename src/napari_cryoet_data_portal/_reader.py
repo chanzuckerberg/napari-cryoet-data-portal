@@ -43,7 +43,7 @@ def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
         f'{dataset_dir}/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr',
         f'{dataset_dir}/TS_027/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_027.zarr',
     )
-    >>> reader = points_annotations_reader(path)
+    >>> reader = tomogram_ome_zarr_reader(path)
     >>> layers = reader(path)
     """
     return _read_many_tomograms_ome_zarr
@@ -101,7 +101,7 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
 
     Examples
     --------
-    >>> annotation_dir = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotation'
+    >>> annotation_dir = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations'
     >>> path = (
         f'{annotation_dir}/sara_goetz-ribosome-1.0.json',
         f'{annotation_dir}/sara_goetz-fatty_acid_synthase-1.0.json',
@@ -135,7 +135,7 @@ def read_points_annotations_json(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Points
-    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotation/sara_goetz-ribosome-1.0.json'
+    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/sara_goetz-ribosome-1.0.json'
     >>> data, attrs, _ = read_points_annotations_json(path)
     >>> points = Points(data, **attrs)
     """
