@@ -72,7 +72,8 @@ def read_tomogram_ome_zarr(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Image
-    >>> data, attrs, _ = read_tomogram_ome_zarr('s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr')
+    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr'
+    >>> data, attrs, _ = read_tomogram_ome_zarr(path)
     >>> image = Image(data, **attrs)
     """
     path = s3_to_https(path)
@@ -134,7 +135,8 @@ def read_points_annotations_json(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Points
-    >>> data, attrs, _ = read_points_annotations_json('julia_mahamid-ribosome-1.0.json')
+    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotation/sara_goetz-ribosome-1.0.json'
+    >>> data, attrs, _ = read_points_annotations_json(path)
     >>> points = Points(data, **attrs)
     """
     data: List[Tuple[float, float, float]] = []
