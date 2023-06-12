@@ -15,7 +15,7 @@ from qtpy.QtWidgets import (
 )
 
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Subject
+from napari_cryoet_data_portal._model import Tomogram
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import (
     read_points_annotations_json,
@@ -56,7 +56,7 @@ class OpenWidget(QGroupBox):
         super().__init__(parent)
 
         self._viewer = viewer
-        self._subject: Optional[Subject] = None
+        self._tomogram : Optional[Tomogram] = None
 
         self.setTitle("Tomogram")
 
@@ -71,7 +71,7 @@ class OpenWidget(QGroupBox):
         self.resolution.setCurrentText(LOW_RESOLUTION.name)
         self.resolution_label.setBuddy(self.resolution)
         self._progress = ProgressWidget(
-            work=self._loadSubject,
+            work=self._loadTomogram,
             yieldCallback=self._onLayerLoaded,
         )
 
@@ -88,38 +88,38 @@ class OpenWidget(QGroupBox):
         layout.addWidget(self._progress)
         self.setLayout(layout)
 
-    def setSubject(self, subject: Subject) -> None:
+    def setTomogram(self, tomogram: Tomogram) -> None:
         """Sets the current tomogram that should be opened."""
         self.cancel()
-        self._subject = subject
+        self._tomogram = tomogram
         # Reset resolution to low to handle case when user tries
         # out a higher resolution but then moves onto another tomogram.
         self.resolution.setCurrentText(LOW_RESOLUTION.name)
-        self.setTitle(f"Tomogram: {subject.name}")
+        self.setTitle(f"Tomogram: {tomogram.name}")
         self.show()
         self.load()
 
     def load(self) -> None:
         """Loads the current tomogram at the current resolution."""
         resolution = self.resolution.currentData()
-        logger.debug("OpenWidget.load: %s", self._subject, resolution)
+        logger.debug("OpenWidget.load: %s", self._tomogram, resolution)
         self._viewer.layers.clear()
-        self._progress.submit(self._subject, resolution)
+        self._progress.submit(self._tomogram, resolution)
 
     def cancel(self) -> None:
         """Cancels the last tomogram load."""
         logger.debug("OpenWidget.cancel")
         self._progress.cancel()
 
-    def _loadSubject(
+    def _loadTomogram(
         self,
-        subject: Subject,
+        tomogram: Tomogram,
         resolution: Resolution,
     ) -> Generator[FullLayerData, None, None]:
-        logger.debug("OpenWidget._loadSubject: %s", subject.name)
-        image_data, image_attrs, _ = read_tomogram_ome_zarr(subject.image_path)
+        logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
+        image_data, image_attrs, _ = read_tomogram_ome_zarr(tomogram.image_path)
         # TODO: read JSON metadata in reader to get name from there.
-        image_attrs["name"] = f"{subject.name}-tomogram"
+        image_attrs["name"] = f"{tomogram.name}-tomogram"
         # Skip indexing for multi-resolution to avoid adding any
         # unnecessary nodes to the dask compute graph.
         if resolution is not MULTI_RESOLUTION:
@@ -132,13 +132,11 @@ class OpenWidget(QGroupBox):
         )
         yield image_data, image_attrs, "image"
 
-        for p in subject.annotation_paths:
+        for p in tomogram.annotation_paths:
             points_data, points_attrs, _ = read_points_annotations_json(p)
             annotation_name = points_attrs["name"]
-            points_attrs["name"] = f"{subject.name}-{annotation_name}"
+            points_attrs["name"] = f"{tomogram.name}-{annotation_name}"
             yield points_data, points_attrs, "points"
-
-        return subject
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")

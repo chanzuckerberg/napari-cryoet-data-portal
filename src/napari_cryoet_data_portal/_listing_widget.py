@@ -69,12 +69,12 @@ class ListingWidget(QGroupBox):
 
     def _onDatasetLoaded(self, dataset: Dataset) -> None:
         logger.debug("ListingWidget._onDatasetLoaded: %s", dataset.name)
-        text = f"{dataset.name} ({len(dataset.subjects)})"
+        text = f"{dataset.name} ({len(dataset.tomograms)})"
         item = QTreeWidgetItem((text,))
         item.setData(0, Qt.ItemDataRole.UserRole, dataset)
-        for s in dataset.subjects:
-            subject_item = QTreeWidgetItem((s.name,))
-            subject_item.setData(0, Qt.ItemDataRole.UserRole, s)
-            item.addChild(subject_item)
+        for s in dataset.tomograms:
+            tomogram_item = QTreeWidgetItem((s.name,))
+            tomogram_item.setData(0, Qt.ItemDataRole.UserRole, s)
+            item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)
         self.tree.addTopLevelItem(item)

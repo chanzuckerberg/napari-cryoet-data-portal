@@ -21,24 +21,24 @@ DEFAULT_SPACING = 'VoxelSpacing13.48'
 
 
 @dataclass(frozen=True)
-class Subject:
-    """Represents a subject or tomogram within a dataset.
+class Tomogram:
+    """Represents a tomogram within a dataset.
 
     Attributes
     ----------
     name : str
-        The name of the subject (e.g. 'TS_026').
+        The name of the tomogram (e.g. 'TS_026').
     path : str
-        The full directory-like path associated with the subject
+        The full directory-like path associated with the tomogram 
         (e.g. 's3://cryoet-data-portal-public/10000/TS_026').
     tomogram_path : str
-        The full directory-like path to the tomogram directory that contains the volumes and annotations.
+        The full directory-like path to the tomogram directory that contains the volumes and annotations
         (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48').
     image_path : str
         The full directory-like path to the tomogram as an OME-Zarr multi-scale image
         (e.g. 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr').
     annotation_paths : tuple of str
-        The full file-like paths to the annotation JSON files.
+        The full file-like paths to the annotation JSON files
         (e.g. ['s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/sara_goetz-ribosome-1.0.json', ...]).
     """
 
@@ -57,7 +57,7 @@ class Subject:
     @classmethod
     def from_dataset_path_and_name(
         cls, dataset_path: str, name: str
-    ) -> "Subject":
+    ) -> "Tomogram":
         path = f"{dataset_path}/{name}"
         dataset_name = dataset_path.split('/')[-1]
         spacing = DATASET_TO_SPACING.get(dataset_name, DEFAULT_SPACING)
@@ -80,7 +80,7 @@ class Subject:
 
 @dataclass(frozen=True)
 class Dataset:
-    """Represents an entire dataset of many subjects and their annotations.
+    """Represents an entire dataset of many tomograms and their annotations.
 
     Attributes
     ----------
@@ -89,13 +89,13 @@ class Dataset:
     path : str
         The full directory-like path associated with the dataset
         (e.g. 's3://cryoet-data-portal-public/10000').
-    subjects : tuple of subjects
-        The subjects within the dataset.
+    tomograms : tuple of tomograms
+        The tomograms within the dataset.
     """
 
     name: str
     path: str
-    subjects: Tuple[Subject, ...] = field(repr=False)
+    tomograms: Tuple[Tomogram, ...] = field(repr=False)
 
     @cached_property
     def metadata_path(self) -> str:
@@ -104,10 +104,10 @@ class Dataset:
     @classmethod
     def from_data_path_and_name(cls, data_path: str, name: str) -> "Dataset":
         path = f"{data_path}/{name}"
-        subjects = tuple(
-            Subject.from_dataset_path_and_name(path, p)
+        tomograms = tuple(
+            Tomogram.from_dataset_path_and_name(path, p)
             for p in list_dir(path)
             # TODO: better way to select non-hidden directories.
             if "." not in p
         )
-        return Dataset(name=name, path=path, subjects=subjects)
+        return Dataset(name=name, path=path, tomograms=tomograms)
