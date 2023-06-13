@@ -22,7 +22,7 @@ class MetadataWidget(QGroupBox):
         self._main = QSearchableTreeWidget()
         self._main.layout().setContentsMargins(0, 0, 0, 0)
         self._main.filter.setPlaceholderText("Filter metadata")
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._loadMetadata,
             returnCallback=self._onMetadataLoaded,
         )

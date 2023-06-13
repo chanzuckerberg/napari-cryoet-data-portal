@@ -26,16 +26,16 @@ class ProgressWidget(QWidget, Generic[YieldType, SendType, ReturnType]):
         self,
         *,
         work: WorkType,
-        yieldCallback: YieldCallback = None,
-        returnCallback: ReturnCallback = None,
+        yieldCallback: Optional[YieldCallback] = None,
+        returnCallback: Optional[ReturnCallback] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
 
         self._worker: Optional[TaskWorker] = None
         self._work: WorkType = work
-        self._yieldCallback: YieldCallback = yieldCallback
-        self._returnCallback: ReturnCallback = returnCallback
+        self._yieldCallback: Optional[YieldCallback] = yieldCallback
+        self._returnCallback: Optional[ReturnCallback] = returnCallback
 
         self._last_id: Optional[int] = None
 

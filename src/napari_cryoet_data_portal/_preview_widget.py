@@ -23,7 +23,7 @@ class PreviewWidget(QGroupBox):
 
         self.setTitle("Preview")
         self.list = PreviewListWidget()
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._loadSubjects,
             yieldCallback=self._onSubjectLoaded,
         )

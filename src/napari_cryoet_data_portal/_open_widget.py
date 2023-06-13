@@ -68,7 +68,7 @@ class OpenWidget(QGroupBox):
             self.resolution.addItem(res.name, res)
         self.resolution.setCurrentText(LOW_RESOLUTION.name)
         self.resolution_label.setBuddy(self.resolution)
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._loadSubject,
             yieldCallback=self._onLayerLoaded,
         )

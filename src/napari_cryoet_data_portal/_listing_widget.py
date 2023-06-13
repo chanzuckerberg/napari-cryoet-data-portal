@@ -28,7 +28,7 @@ class ListingWidget(QGroupBox):
         self.filter = QLineEdit()
         self.filter.setPlaceholderText("Filter datasets and tomograms")
         self.filter.setClearButtonEnabled(True)
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._loadDatasets,
             yieldCallback=self._onDatasetLoaded,
         )
