@@ -1,5 +1,6 @@
 from typing import Callable, Generator, Generic, Optional, TypeVar, Union
 
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -22,6 +23,9 @@ WorkType = Union[
 
 
 class ProgressWidget(QWidget, Generic[YieldType, SendType, ReturnType]):
+    
+    finished = Signal()
+
     def __init__(
         self,
         *,
@@ -99,6 +103,7 @@ class ProgressWidget(QWidget, Generic[YieldType, SendType, ReturnType]):
         if self._last_id == task_id:
             self._worker = None
             self._setLoaded()
+        self.finished.emit()
 
     def _isTaskCancelled(self, task_id: int) -> bool:
         if self._worker is None:

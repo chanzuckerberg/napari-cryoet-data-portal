@@ -25,7 +25,7 @@ def mock_list_dir(path: str) -> Tuple[str, ...]:
 
 
 @pytest.fixture()
-def widget(qtbot: QtBot):
+def widget(qtbot: QtBot) -> UriWidget:
     widget = UriWidget()
     qtbot.add_widget(widget)
     return widget
@@ -62,10 +62,10 @@ def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot, 
     widget._uri_edit.setText('s3://mock-bad-uri')
 
     with qtbot.captureExceptions() as exceptions:
-        widget._connect_button.click()
-        qtbot.waitUntil(widget._connect_button.isEnabled)
-    assert len(exceptions) == 1
-    assert exceptions[0][0] is ValueError
+        with qtbot.waitSignal(widget._progress.finished):
+            widget._connect_button.click()
+        assert len(exceptions) == 1
+        assert exceptions[0][0] is ValueError
 
     assert widget._connect_button.isVisibleTo(widget)
     assert widget._choose_dir_button.isVisibleTo(widget)

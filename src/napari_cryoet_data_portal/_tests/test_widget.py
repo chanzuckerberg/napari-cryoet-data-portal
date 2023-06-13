@@ -10,7 +10,7 @@ from napari_cryoet_data_portal import DataPortalWidget
 
 
 @pytest.fixture()
-def widget(qtbot):
+def widget(qtbot) -> DataPortalWidget:
     viewer = ViewerModel()
     widget = DataPortalWidget(viewer)
     qtbot.add_widget(widget)
