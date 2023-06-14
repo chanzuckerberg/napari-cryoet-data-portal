@@ -1,27 +1,12 @@
-from typing import Tuple
-
 import pytest
 from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._uri_widget import UriWidget
-
-
-MOCK_S3_URI = 's3://mock-portal'
-DATASET_NAMES = ('10000', '10001', '10004')
-TOMOGRAM_NAMES = ('TS_026', 'TS_027', 'TS_028')
-
-
-def mock_path_exists(path: str) -> bool:
-    return path == MOCK_S3_URI
-
-
-def mock_list_dir(path: str) -> Tuple[str, ...]:
-    if path == f'{MOCK_S3_URI}':
-        return DATASET_NAMES
-    elif path == f'{MOCK_S3_URI}/10000':
-        return TOMOGRAM_NAMES
-    raise ValueError('Mock path {path} not supported.')
+from napari_cryoet_data_portal._tests.utils import (
+    MOCK_S3_URI,
+    mock_path_exists,
+)
 
 
 @pytest.fixture()
@@ -43,7 +28,10 @@ def test_init(qtbot: QtBot):
 
 
 def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot, mocker: MockerFixture):
-    mocker.patch('napari_cryoet_data_portal._uri_widget.path_exists', mock_path_exists)
+    mocker.patch(
+        'napari_cryoet_data_portal._uri_widget.path_exists',
+        mock_path_exists,
+    )
     widget._uri_edit.setText(MOCK_S3_URI)
 
     with qtbot.waitSignal(widget.connected):
@@ -58,7 +46,10 @@ def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot, mocker: 
 
 
 def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot, mocker: MockerFixture):
-    mocker.patch('napari_cryoet_data_portal._uri_widget.path_exists', mock_path_exists)
+    mocker.patch(
+        'napari_cryoet_data_portal._uri_widget.path_exists',
+        mock_path_exists,
+    )
     widget._uri_edit.setText('s3://mock-bad-uri')
 
     with qtbot.captureExceptions() as exceptions:
@@ -93,7 +84,10 @@ def test_choose_dir_button_clicked(widget: UriWidget, mocker: MockerFixture):
     mock_dir = '/path/to/test'
     def mock_get_existing_directory(_):
         return mock_dir
-    mocker.patch('napari_cryoet_data_portal._uri_widget.QFileDialog.getExistingDirectory', mock_get_existing_directory)
+    mocker.patch(
+        'napari_cryoet_data_portal._uri_widget.QFileDialog.getExistingDirectory',
+        mock_get_existing_directory,
+    )
 
     widget._choose_dir_button.click()
 

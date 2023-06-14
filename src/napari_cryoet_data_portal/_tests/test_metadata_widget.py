@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple
+from typing import Tuple
 
 import pytest
 from qtpy.QtWidgets import QTreeWidget, QTreeWidgetItem
@@ -6,27 +6,10 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._model import Dataset
-
-
-MOCK_S3_URI = 's3://mock-portal'
-MOCK_METADATA = {
-    'dataset_title': 'mock dataset',
-    'authors': [
-        {
-            'name': 'mock author',
-            'ORCID': "0000-1111-2222-3333",
-        }
-    ],
-    'organism': {
-        'name': 'mock organism',
-    }
-}
-
-def mock_read_json(path: str) -> Dict[str, Any]:
-    if path.startswith(MOCK_S3_URI):
-        return MOCK_METADATA
-    raise ValueError(f'Mock path not supported: {path}')
+from napari_cryoet_data_portal._tests.utils import (
+    MOCK_DATASET_10000,
+    mock_read_json,
+)
 
 
 def top_items(tree: QTreeWidget) -> Tuple[QTreeWidgetItem, ...]:
@@ -49,15 +32,13 @@ def test_init(qtbot: QtBot):
 
 
 def test_load_dataset_lists_metadata(widget: MetadataWidget, mocker: MockerFixture, qtbot: QtBot):
-    mocker.patch('napari_cryoet_data_portal._metadata_widget.read_json', mock_read_json)
-    dataset = Dataset(
-        name='10000',
-        path=f'{MOCK_S3_URI}/10000',
-        tomograms=(),
+    mocker.patch(
+        'napari_cryoet_data_portal._metadata_widget.read_json',
+        mock_read_json,
     )
 
     with qtbot.waitSignal(widget._progress.finished):
-        widget.load(dataset)
+        widget.load(MOCK_DATASET_10000)
     
     items = top_items(widget._main.tree)
     
