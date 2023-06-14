@@ -17,10 +17,6 @@ TOMOGRAM_NAMES = {
 ANNOTATION_NAMES = ('ribosome.json', 'fatty-acid-synthase.json')
 
 
-def mock_path_exists(path: str) -> bool:
-    return path == MOCK_S3_URI
-
-
 def mock_list_dir(path: str) -> Tuple[str, ...]:
     if path == f'{MOCK_S3_URI}':
         return DATASET_NAMES
