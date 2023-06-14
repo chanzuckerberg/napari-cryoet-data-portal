@@ -4,7 +4,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._open_widget import OpenWidget
-from napari_cryoet_data_portal._tests.utils import (
+from napari_cryoet_data_portal._tests._mocks import (
     MOCK_TOMOGRAM_TS_026,
     mock_read_points_annotations_json,
     mock_read_tomogram_ome_zarr,

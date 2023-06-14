@@ -3,7 +3,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._uri_widget import UriWidget
-from napari_cryoet_data_portal._tests.utils import (
+from napari_cryoet_data_portal._tests._mocks import (
     MOCK_S3_URI,
     mock_path_exists,
 )

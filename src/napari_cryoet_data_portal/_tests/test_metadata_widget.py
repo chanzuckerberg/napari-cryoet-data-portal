@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._tests.utils import (
+from napari_cryoet_data_portal._tests._mocks import (
     MOCK_DATASET_10000,
     mock_read_json,
 )

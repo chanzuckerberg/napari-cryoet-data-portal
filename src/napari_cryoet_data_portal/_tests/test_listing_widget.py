@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._listing_widget import ListingWidget
-from napari_cryoet_data_portal._tests.utils import (
+from napari_cryoet_data_portal._tests._mocks import (
     MOCK_S3_URI,
     mock_list_dir,
 )
