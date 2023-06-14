@@ -1,7 +1,4 @@
-from typing import Tuple
-
 import pytest
-from qtpy.QtWidgets import QTreeWidget, QTreeWidgetItem
 from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
@@ -10,10 +7,7 @@ from napari_cryoet_data_portal._tests._mocks import (
     MOCK_DATASET_10000,
     mock_read_json,
 )
-
-
-def top_items(tree: QTreeWidget) -> Tuple[QTreeWidgetItem, ...]:
-    return tuple(tree.topLevelItem(i) for i in range(tree.topLevelItemCount()))
+from napari_cryoet_data_portal._tests._utils import tree_top_items
 
 
 @pytest.fixture()
@@ -40,7 +34,7 @@ def test_load_dataset_lists_metadata(widget: MetadataWidget, mocker: MockerFixtu
     with qtbot.waitSignal(widget._progress.finished):
         widget.load(MOCK_DATASET_10000)
     
-    items = top_items(widget._main.tree)
+    items = tree_top_items(widget._main.tree)
     
     assert len(items) == 3
     assert items[0].text(0) == 'dataset_title'

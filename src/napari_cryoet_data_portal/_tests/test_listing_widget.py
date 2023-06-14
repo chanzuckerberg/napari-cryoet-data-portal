@@ -1,7 +1,4 @@
-from typing import Iterable, Tuple
-
 import pytest
-from qtpy.QtWidgets import QTreeWidget, QTreeWidgetItem
 from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
@@ -10,18 +7,11 @@ from napari_cryoet_data_portal._tests._mocks import (
     MOCK_S3_URI,
     mock_list_dir,
 )
-
-
-def top_items(tree: QTreeWidget) -> Tuple[QTreeWidgetItem, ...]:
-    return tuple(tree.topLevelItem(i) for i in range(tree.topLevelItemCount()))
-
-
-def child_items(item: QTreeWidgetItem) -> Tuple[QTreeWidgetItem, ...]:
-    return tuple(item.child(i) for i in range(item.childCount()))
-
-
-def items_names(items: Iterable[QTreeWidgetItem]) -> Tuple[str, ...]:
-    return tuple(item.text(0) for item in items)
+from napari_cryoet_data_portal._tests._utils import (
+    tree_item_children,
+    tree_items_names,
+    tree_top_items,
+)
 
 
 @pytest.fixture()
@@ -53,10 +43,10 @@ def test_load_lists_data(widget: ListingWidget, mocker: MockerFixture, qtbot: Qt
     with qtbot.waitSignal(widget._progress.finished):
         widget.load(MOCK_S3_URI)
     
-    dataset_items = top_items(widget.tree)
-    assert items_names(dataset_items) == ('10000 (2)', '10004 (2)')
-    tomogram_items_10000 = child_items(dataset_items[0])
-    assert items_names(tomogram_items_10000) == ('TS_026', 'TS_027')
-    tomogram_items_10001 = child_items(dataset_items[1])
-    assert items_names(tomogram_items_10001) == ('Position_128_2', 'Position_129_2')
+    dataset_items = tree_top_items(widget.tree)
+    assert tree_items_names(dataset_items) == ('10000 (2)', '10004 (2)')
+    tomogram_items_10000 = tree_item_children(dataset_items[0])
+    assert tree_items_names(tomogram_items_10000) == ('TS_026', 'TS_027')
+    tomogram_items_10001 = tree_item_children(dataset_items[1])
+    assert tree_items_names(tomogram_items_10001) == ('Position_128_2', 'Position_129_2')
     
