@@ -66,7 +66,6 @@ class UriWidget(QGroupBox):
     def _onConnectClicked(self) -> None:
         uri = self._uri_edit.text().strip()
         logger.debug("UriWidget._onConnectClicked: %s", uri)
-        self._connect_button.setEnabled(False)
         self._progress.submit(uri)
 
     def _onDisconnectClicked(self) -> None:
@@ -90,7 +89,6 @@ class UriWidget(QGroupBox):
 
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
-        self._connect_button.setEnabled(True)
         self._connect_button.setVisible(not uri_exists)
         self._choose_dir_button.setVisible(not uri_exists)
         self._disconnect_button.setVisible(uri_exists)
