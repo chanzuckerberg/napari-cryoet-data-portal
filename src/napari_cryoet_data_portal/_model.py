@@ -54,10 +54,6 @@ class Tomogram:
             f"{self.tomogram_path}/CanonicalTomogram/tomogram_metadata.json"
         )
 
-    @cached_property
-    def annotations_path(self) -> str:
-        return f"{self.tomogram_path}/Annotations"
-
     @classmethod
     def from_dataset_path_and_name(
         cls, dataset_path: str, name: str

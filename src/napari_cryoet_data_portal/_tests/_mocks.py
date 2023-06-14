@@ -137,7 +137,8 @@ def mock_list_dir(path: str) -> Tuple[str, ...]:
         if ds.path == path:
             return tuple(tomo.name for tomo in ds.tomograms)
         for tomo in ds.tomograms:
-            if tomo.annotations_path == path:
+            anno_path = f"{tomo.tomogram_path}/Annotations"
+            if path == anno_path:
                 return tuple(
                     p.split('/')[-1]
                     for p in tomo.annotation_paths
