@@ -8,7 +8,7 @@ import ndjson
 from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 
-from napari_cryoet_data_portal._io import get_open, read_json, s3_to_https
+from napari_cryoet_data_portal._io import get_open, s3_to_https
 
 
 OBJECT_COLOR = {
@@ -20,6 +20,32 @@ DEFAULT_OBJECT_COLOR = 'red'
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
+    """napari plugin entry point for reading tomograms in the OME-Zarr format.
+
+    Parameters
+    ----------
+    path : str or sequence of str
+        The path or paths of the OME-Zarr directories containing tomograms.
+
+    Returns
+    -------
+    A function that can be called with the same path parameter to produce
+    a list of napari image layer data tuples.
+
+    See also
+    --------
+    read_tomogram_ome_zarr : reads napari layer data from one OME-Zarr directory
+
+    Examples
+    --------
+    >>> dataset_dir = 's3://cryoet-data-portal-public/10000'
+    >>> path = (
+        f'{dataset_dir}/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr',
+        f'{dataset_dir}/TS_027/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_027.zarr',
+    )
+    >>> reader = tomogram_ome_zarr_reader(path)
+    >>> layers = reader(path)
+    """
     return _read_many_tomograms_ome_zarr
 
 
@@ -29,17 +55,13 @@ def _read_many_tomograms_ome_zarr(paths: PathOrPaths) -> List[FullLayerData]:
     return [read_tomogram_ome_zarr(p) for p in paths]
 
 
-def read_tomogram_metadata(path: str) -> Dict[str, Any]:
-    return read_json(path)
-
-
 def read_tomogram_ome_zarr(path: str) -> FullLayerData:
     """Reads a napari image layer from a tomogram in the OME-Zarr format.
 
     Parameters
     ----------
     path : str
-        The path of the top of the OME-Zarr hierarchy.
+        The path of the OME-Zarr directory.
 
     Returns
     -------
@@ -50,7 +72,8 @@ def read_tomogram_ome_zarr(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Image
-    >>> data, attrs, _ = read_tomogram_ome_zarr('s3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr')
+    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr'
+    >>> data, attrs, _ = read_tomogram_ome_zarr(path)
     >>> image = Image(data, **attrs)
     """
     path = s3_to_https(path)
@@ -78,9 +101,13 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
 
     Examples
     --------
-    >>> path = ['julia_mahamid-ribosome-1.0.json', 'julia_mahamid-fatty_acid_synthase-1.0.json']
+    >>> annotation_dir = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations'
+    >>> path = (
+        f'{annotation_dir}/sara_goetz-ribosome-1.0.json',
+        f'{annotation_dir}/sara_goetz-fatty_acid_synthase-1.0.json',
+    )
     >>> reader = points_annotations_reader(path)
-    >>> data, attrs, _ = reader(path)
+    >>> layers = reader(path)
     """
     return _read_many_points_annotations
 
@@ -108,7 +135,8 @@ def read_points_annotations_json(path: str) -> FullLayerData:
     Examples
     --------
     >>> from napari.layers import Points
-    >>> data, attrs, _ = read_points_annotations_json('julia_mahamid-ribosome-1.0.json')
+    >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/sara_goetz-ribosome-1.0.json'
+    >>> data, attrs, _ = read_points_annotations_json(path)
     >>> points = Points(data, **attrs)
     """
     data: List[Tuple[float, float, float]] = []

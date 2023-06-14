@@ -10,7 +10,7 @@ from qtpy.QtWidgets import (
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._model import Subject
+from napari_cryoet_data_portal._model import Tomogram
 from napari_cryoet_data_portal._open_widget import OpenWidget
 from napari_cryoet_data_portal._uri_widget import UriWidget
 
@@ -19,7 +19,20 @@ if TYPE_CHECKING:
 
 
 class DataPortalWidget(QWidget):
-    """The main widget for browsing the data portal from napari."""
+    """The main widget for browsing the data portal from napari.
+
+    This consists of a few privately defined sub-widgets, each of which
+    has its own task with respect to the data portal like the initial
+    connection or reading metadata from a dataset or tomogram.
+    Each task is run asynchronously and can be cancelled.
+
+    Examples
+    --------
+    >>> from napari import Viewer
+    >>> viewer = Viewer()
+    >>> widget = DataPortalWidget(viewer)
+    >>> viewer.window.add_dock_widget(widget)
+    """
 
     def __init__(
         self, napari_viewer: "ViewerModel", parent: Optional[QWidget] = None
@@ -74,7 +87,7 @@ class DataPortalWidget(QWidget):
             return
         data = item.data(0, Qt.ItemDataRole.UserRole)
         self._metadata.load(data)
-        if isinstance(data, Subject):
-            self._open.setSubject(data)
+        if isinstance(data, Tomogram):
+            self._open.setTomogram(data)
         else:
             self._open.hide()
