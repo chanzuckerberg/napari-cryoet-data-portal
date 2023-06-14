@@ -20,6 +20,8 @@ from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import 
 
 
 class ListingWidget(QGroupBox):
+    """Lists the datasets and tomograms in a searchable tree."""
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
@@ -43,12 +45,14 @@ class ListingWidget(QGroupBox):
         self.setLayout(layout)
 
     def load(self, path: str) -> None:
+        """Lists the datasets and tomograms at the given data portal path."""
         logger.debug("ListingWidget.load: %s", path)
         self.tree.clear()
         self.show()
         self._progress.submit(path)
 
     def cancel(self) -> None:
+        """Cancels the last listing."""
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 
@@ -65,12 +69,12 @@ class ListingWidget(QGroupBox):
 
     def _onDatasetLoaded(self, dataset: Dataset) -> None:
         logger.debug("ListingWidget._onDatasetLoaded: %s", dataset.name)
-        text = f"{dataset.name} ({len(dataset.subjects)})"
+        text = f"{dataset.name} ({len(dataset.tomograms)})"
         item = QTreeWidgetItem((text,))
         item.setData(0, Qt.ItemDataRole.UserRole, dataset)
-        for s in dataset.subjects:
-            subject_item = QTreeWidgetItem((s.name,))
-            subject_item.setData(0, Qt.ItemDataRole.UserRole, s)
-            item.addChild(subject_item)
+        for s in dataset.tomograms:
+            tomogram_item = QTreeWidgetItem((s.name,))
+            tomogram_item.setData(0, Qt.ItemDataRole.UserRole, s)
+            item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)
         self.tree.addTopLevelItem(item)

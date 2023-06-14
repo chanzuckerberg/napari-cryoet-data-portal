@@ -53,7 +53,7 @@ def test_load_dataset_lists_metadata(widget: MetadataWidget, mocker: MockerFixtu
     dataset = Dataset(
         name='10000',
         path=f'{MOCK_S3_URI}/10000',
-        subjects=(),
+        tomograms=(),
     )
 
     with qtbot.waitSignal(widget._progress.finished):

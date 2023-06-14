@@ -7,7 +7,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from napari_cryoet_data_portal._open_widget import OpenWidget
-from napari_cryoet_data_portal._model import Subject
+from napari_cryoet_data_portal._model import Tomogram
 
 
 MOCK_S3_URI = 's3://mock-portal'
@@ -48,17 +48,17 @@ def widget(viewer_model: ViewerModel, qtbot: QtBot) -> OpenWidget:
 
 
 @pytest.fixture()
-def subject() -> Subject:
-    subject_path = f'{MOCK_S3_URI}/10000/TS_026'
-    tomogram_path = f'{subject_path}/Tomograms/VoxelSpacing13.48'
+def tomogram() -> Tomogram:
+    tomogram_path = f'{MOCK_S3_URI}/10000/TS_026'
+    tomogram_path = f'{tomogram_path}/Tomograms/VoxelSpacing13.48'
     annotations_path = f'{tomogram_path}/Annotations'
     annotations_paths = (
         f'{annotations_path}/ribosome.json',
         f'{annotations_path}/fatty-acid-synthase.json',
     )
-    return Subject(
+    return Tomogram(
         name='TS_026',
-        path=subject_path,
+        path=tomogram_path,
         tomogram_path=tomogram_path,
         image_path=f'{tomogram_path}/TS_026.zarr',
         annotation_paths=annotations_paths,
@@ -72,13 +72,13 @@ def test_init(viewer_model: ViewerModel, qtbot: QtBot):
     assert not widget._progress.isVisibleTo(widget)
 
 
-def test_set_subject_loads_then_adds_layers_to_viewer(widget: OpenWidget, subject: Subject, mocker: MockerFixture, qtbot: QtBot):
+def test_set_tomogram_loads_then_adds_layers_to_viewer(widget: OpenWidget, tomogram: Tomogram, mocker: MockerFixture, qtbot: QtBot):
     mocker.patch('napari_cryoet_data_portal._open_widget.read_tomogram_ome_zarr', mock_read_tomogram_ome_zarr)
     mocker.patch('napari_cryoet_data_portal._open_widget.read_points_annotations_json', mock_read_points_annotations_json)
     assert len(widget._viewer.layers) == 0
     
     with qtbot.waitSignal(widget._progress.finished):
-        widget.setSubject(subject)
+        widget.setTomogram(tomogram)
     
     assert len(widget._viewer.layers) == 3
     

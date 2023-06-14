@@ -11,21 +11,23 @@ from qtpy.QtWidgets import (
 )
 
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Dataset, Subject
+from napari_cryoet_data_portal._model import Dataset, Tomogram
 from napari_cryoet_data_portal._preview_list_widget import PreviewListWidget
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import read_tomogram_ome_zarr
 
 
 class PreviewWidget(QGroupBox):
+    """Previews tomograms in a dataset as a list of thumbnail images."""
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
         self.setTitle("Preview")
         self.list = PreviewListWidget()
         self._progress: ProgressWidget = ProgressWidget(
-            work=self._loadSubjects,
-            yieldCallback=self._onSubjectLoaded,
+            work=self._loadTomograms,
+            yieldCallback=self._onTomogramLoaded,
         )
 
         layout = QVBoxLayout()
@@ -35,33 +37,33 @@ class PreviewWidget(QGroupBox):
         self.setLayout(layout)
 
     def load(self, data: Dataset) -> None:
+        """Previews the tomograms of the given dataset."""
         logger.debug("PreviewWidget.load: %s", data.name)
         self.list.clear()
         self.show()
         self._progress.submit(data)
 
     def cancel(self) -> None:
+        """Cancels the last dataset preview load."""
         logger.debug("PreviewWidget.cancel")
         self._progress.cancel()
 
-    def _loadSubjects(
+    def _loadTomograms(
         self, dataset: Dataset
-    ) -> Generator[Tuple[Subject, np.ndarray], None, None]:
-        logger.debug("PreviewWidget._loadSubjects: %s", dataset.name)
-        for subject in dataset.subjects:
-            data, _, _ = read_tomogram_ome_zarr(subject.image_path)
+    ) -> Generator[Tuple[Tomogram, np.ndarray], None, None]:
+        logger.debug("PreviewWidget._loadTomograms: %s", dataset.name)
+        for tomogram in dataset.tomograms:
+            data, _, _ = read_tomogram_ome_zarr(tomogram.image_path)
             # Materialize the lowest resolution level of the zarr for the preview.
             data = np.asarray(data[-1])
-            yield subject, data
+            yield tomogram, data
 
-    def _onSubjectLoaded(
-        self, subject_data: Tuple[Subject, np.ndarray]
-    ) -> None:
-        subject, data = subject_data
-        logger.debug("PreviewWidget._onSubjectLoaded: %s", subject.name)
+    def _onTomogramLoaded(self, result: Tuple[Tomogram, np.ndarray]) -> None:
+        tomogram, data = result
+        logger.debug("PreviewWidget._onTomogramLoaded: %s", tomogram.name)
         icon = _make_tomogram_preview(data)
-        item = QListWidgetItem(icon, subject.name)
-        item.setData(Qt.ItemDataRole.UserRole, subject)
+        item = QListWidgetItem(icon, tomogram.name)
+        item.setData(Qt.ItemDataRole.UserRole, tomogram)
         self.list.addItem(item)
 
 

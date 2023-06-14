@@ -11,7 +11,7 @@ from napari_cryoet_data_portal._logging import logger
 
 
 class PreviewListWidget(QListWidget):
-    """Lists subjects by showing a preview of their image."""
+    """A filterable list of icons."""
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)

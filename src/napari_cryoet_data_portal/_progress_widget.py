@@ -23,7 +23,8 @@ WorkType = Union[
 
 
 class ProgressWidget(QWidget, Generic[YieldType, SendType, ReturnType]):
-    
+    """Shows progress and handles cancellation of a task."""
+
     finished = Signal()
 
     def __init__(
