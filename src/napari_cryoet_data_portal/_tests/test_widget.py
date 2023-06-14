@@ -11,7 +11,7 @@ from napari_cryoet_data_portal import DataPortalWidget
 
 
 @pytest.fixture()
-def widget(qtbot) -> DataPortalWidget:
+def widget(qtbot: QtBot) -> DataPortalWidget:
     viewer = ViewerModel()
     widget = DataPortalWidget(viewer)
     qtbot.add_widget(widget)
@@ -47,7 +47,7 @@ def test_add_widget_to_napari(make_napari_viewer: Callable[[], Viewer]):
     assert isinstance(widget, DataPortalWidget)
 
 
-def test_listing_item_changed_to_none(widget: DataPortalWidget, mocker: MockerFixture):
+def test_listing_item_changed_to_none(widget: DataPortalWidget):
     sub_widgets = show_all_sub_widgets(widget)
 
     widget._listing.tree.currentItemChanged.emit(None, None)
