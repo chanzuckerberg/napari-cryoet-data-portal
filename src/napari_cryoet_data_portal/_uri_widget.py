@@ -39,7 +39,7 @@ class UriWidget(QGroupBox):
             QStyle.StandardPixmap.SP_DirOpenIcon
         )
         self._choose_dir_button = QPushButton(choose_dir_icon, "")
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._checkUri,
             returnCallback=self._onUriChecked,
         )
