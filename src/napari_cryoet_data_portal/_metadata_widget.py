@@ -8,7 +8,6 @@ from qtpy.QtWidgets import (
 from cryoet_data_portal import Dataset, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Dataset, Tomogram
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import (
     QSearchableTreeWidget,

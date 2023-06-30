@@ -8,8 +8,6 @@ from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 from cryoet_data_portal import Annotation
 
-from napari_cryoet_data_portal._io import get_open, s3_to_https
-
 
 OBJECT_COLOR = {
     'ribosome': 'red',

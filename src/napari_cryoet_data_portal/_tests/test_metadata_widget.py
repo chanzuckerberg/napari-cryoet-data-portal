@@ -1,13 +1,9 @@
 import pytest
-from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
+from cryoet_data_portal import Dataset, Tomogram
+
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._tests._mocks import (
-    MOCK_DATASET_10000,
-    MOCK_TOMOGRAM_TS_026,
-    mock_read_json,
-)
 from napari_cryoet_data_portal._tests._utils import tree_top_items
 
 
@@ -26,39 +22,17 @@ def test_init(qtbot: QtBot):
     assert not widget._progress.isVisibleTo(widget)
 
 
-def test_load_dataset_lists_metadata(widget: MetadataWidget, mocker: MockerFixture, qtbot: QtBot):
-    mocker.patch(
-        'napari_cryoet_data_portal._metadata_widget.read_json',
-        mock_read_json,
-    )
-
+def test_load_dataset_lists_metadata(widget: MetadataWidget, dataset: Dataset, qtbot: QtBot):
     with qtbot.waitSignal(widget._progress.finished):
-        widget.load(MOCK_DATASET_10000)
+        widget.load(dataset)
     
     items = tree_top_items(widget._main.tree)
-    
-    assert len(items) == 3
-    assert items[0].text(0) == 'dataset_title'
-    assert items[0].text(1) == 'mock dataset'
-    assert items[1].text(0) == 'authors'
-    assert items[2].text(0) == 'organism'
+    assert len(items) > 0
 
    
-def test_load_tomogram_lists_metadata(widget: MetadataWidget, mocker: MockerFixture, qtbot: QtBot):
-    mocker.patch(
-        'napari_cryoet_data_portal._metadata_widget.read_json',
-        mock_read_json,
-    )
-
+def test_load_tomogram_lists_metadata(widget: MetadataWidget, tomogram: Tomogram, qtbot: QtBot):
     with qtbot.waitSignal(widget._progress.finished):
-        widget.load(MOCK_TOMOGRAM_TS_026)
+        widget.load(tomogram)
     
     items = tree_top_items(widget._main.tree)
-    
-    assert len(items) == 3
-    assert items[0].text(0) == 'run_name'
-    assert items[0].text(1) == 'TS_026'
-    assert items[1].text(0) == 'voxel_spacing'
-    assert items[1].text(1) == '13.48'
-    assert items[2].text(0) == 'size'
-     
+    assert len(items) > 0

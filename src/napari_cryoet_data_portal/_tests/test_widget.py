@@ -1,6 +1,7 @@
 from typing import Callable, List, Tuple
 
 import pytest
+from cryoet_data_portal import Client
 from napari import Viewer
 from napari.components import ViewerModel
 from pytest_mock import MockerFixture
@@ -58,13 +59,12 @@ def test_listing_item_changed_to_none(widget: DataPortalWidget):
     )
 
 
-def test_connected_loads_listing(widget: DataPortalWidget, mocker: MockerFixture):
+def test_connected_loads_listing(widget: DataPortalWidget, client: Client, mocker: MockerFixture):
     mocker.patch.object(widget._listing, 'load')
-    uri = 's3://mock-portal'
 
-    widget._uri.connected.emit(uri)
+    widget._uri.connected.emit(client)
 
-    widget._listing.load.assert_called_once_with(uri)
+    widget._listing.load.assert_called_once_with(client)
 
 
 def test_disconnected_only_shows_uri(widget: DataPortalWidget):

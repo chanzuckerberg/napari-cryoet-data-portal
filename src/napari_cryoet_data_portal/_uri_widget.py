@@ -2,12 +2,10 @@ from typing import Optional
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
-    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLineEdit,
     QPushButton,
-    QStyle,
     QVBoxLayout,
     QWidget,
 )
@@ -36,19 +34,14 @@ class UriWidget(QGroupBox):
         self._uri_edit = QLineEdit(GRAPHQL_URI)
         self._uri_edit.setCursorPosition(0)
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
-        choose_dir_icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_DirOpenIcon
-        )
-        self._choose_dir_button = QPushButton(choose_dir_icon, "")
         self._progress: ProgressWidget = ProgressWidget(
-            work=self._checkUri,
+            work=self._connect,
             returnCallback=self._onConnected,
         )
         self._updateVisibility(False)
 
         self._connect_button.clicked.connect(self._onConnectClicked)
         self._disconnect_button.clicked.connect(self._onDisconnectClicked)
-        self._choose_dir_button.clicked.connect(self._onChooseDirClicked)
         self._uri_edit.returnPressed.connect(self._onConnectClicked)
 
         control_layout = QHBoxLayout()
@@ -56,7 +49,6 @@ class UriWidget(QGroupBox):
         control_layout.addWidget(self._connect_button)
         control_layout.addWidget(self._disconnect_button)
         control_layout.addWidget(self._uri_edit)
-        control_layout.addWidget(self._choose_dir_button)
 
         layout = QVBoxLayout()
         layout.addLayout(control_layout)
@@ -86,11 +78,5 @@ class UriWidget(QGroupBox):
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
         self._connect_button.setVisible(not uri_exists)
-        self._choose_dir_button.setVisible(not uri_exists)
         self._disconnect_button.setVisible(uri_exists)
         self._uri_edit.setReadOnly(uri_exists)
-
-    def _onChooseDirClicked(self) -> None:
-        logger.debug("UriWidget._onChooseDirClicked")
-        path = QFileDialog.getExistingDirectory(self)
-        self._uri_edit.setText(path)
