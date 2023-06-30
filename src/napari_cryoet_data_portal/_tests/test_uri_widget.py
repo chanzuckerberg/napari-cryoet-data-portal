@@ -1,5 +1,4 @@
 import pytest
-from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from cryoet_data_portal import Client
@@ -24,7 +23,7 @@ def test_init(qtbot: QtBot):
     assert not widget._progress.isVisibleTo(widget)
 
 
-def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot, mocker: MockerFixture):
+def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot):
     widget._uri_edit.setText(GRAPHQL_URI)
 
     with qtbot.waitSignal(widget.connected):
@@ -38,7 +37,7 @@ def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot, mocker: 
 
 
 @pytest.mark.skip(reason="https://github.com/chanzuckerberg/cryoet-data-portal/issues/16")
-def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot, mocker: MockerFixture):
+def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot):
     widget._uri_edit.setText("https://not.a.graphl.url/v1/graphql")
 
     with qtbot.captureExceptions() as exceptions:
