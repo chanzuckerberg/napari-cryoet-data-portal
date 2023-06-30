@@ -1,10 +1,10 @@
 name: napari-cryoet-data-portal
-display_name: CZII cryoET data portal
+display_name: CryoET Data Portal
 contributions:
   commands:
     - id: napari-cryoet-data-portal.DataPortalWidget
       python_name: napari_cryoet_data_portal._widget:DataPortalWidget
-      title: List and open data
+      title: CryoET Data Portal
     - id: napari-cryoet-data-portal.tomogram_ome_zarr_reader
       python_name: napari_cryoet_data_portal._reader:tomogram_ome_zarr_reader
       title: Read tomograms in the OME-Zarr format
@@ -35,4 +35,4 @@ contributions:
       command: napari-cryoet-data-portal.tomogram_10000_ts_027
   widgets:
     - command: napari-cryoet-data-portal.DataPortalWidget
-      display_name: List and open data
+      display_name: CryoET Data Portal

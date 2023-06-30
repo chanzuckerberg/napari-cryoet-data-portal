@@ -20,7 +20,11 @@ from napari_cryoet_data_portal._progress_widget import ProgressWidget
 GRAPHQL_URI = "https://graphql.cryoetdataportal.cziscience.com/v1/graphql"
 
 class UriWidget(QGroupBox):
+    """Connects to a data portal with a specific URI."""
+
+    # Emitted on successful connection to the URI it contains.
     connected = Signal(object)
+    # Emitted when disconnecting from the portal.
     disconnected = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -36,8 +40,8 @@ class UriWidget(QGroupBox):
             QStyle.StandardPixmap.SP_DirOpenIcon
         )
         self._choose_dir_button = QPushButton(choose_dir_icon, "")
-        self._progress = ProgressWidget(
-            work=self._connect,
+        self._progress: ProgressWidget = ProgressWidget(
+            work=self._checkUri,
             returnCallback=self._onConnected,
         )
         self._updateVisibility(False)

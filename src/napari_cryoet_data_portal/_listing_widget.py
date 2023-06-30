@@ -19,6 +19,8 @@ from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import 
 
 
 class ListingWidget(QGroupBox):
+    """Lists the datasets and tomograms in a searchable tree."""
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
@@ -27,7 +29,7 @@ class ListingWidget(QGroupBox):
         self.filter = QLineEdit()
         self.filter.setPlaceholderText("Filter datasets and tomograms")
         self.filter.setClearButtonEnabled(True)
-        self._progress = ProgressWidget(
+        self._progress: ProgressWidget = ProgressWidget(
             work=self._loadDatasets,
             yieldCallback=self._onDatasetLoaded,
         )
@@ -42,12 +44,14 @@ class ListingWidget(QGroupBox):
         self.setLayout(layout)
 
     def load(self, client: Client) -> None:
+        """Lists the datasets and tomograms using the given client."""
         logger.debug("ListingWidget.load: %s", client)
         self.tree.clear()
         self.show()
         self._progress.submit(client)
 
     def cancel(self) -> None:
+        """Cancels the last listing."""
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 

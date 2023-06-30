@@ -19,7 +19,20 @@ if TYPE_CHECKING:
 
 
 class DataPortalWidget(QWidget):
-    """The main widget for browsing the data portal from napari."""
+    """The main widget for browsing the data portal from napari.
+
+    This consists of a few privately defined sub-widgets, each of which
+    has its own task with respect to the data portal like the initial
+    connection or reading metadata from a dataset or tomogram.
+    Each task is run asynchronously and can be cancelled.
+
+    Examples
+    --------
+    >>> from napari import Viewer
+    >>> viewer = Viewer()
+    >>> widget = DataPortalWidget(viewer)
+    >>> viewer.window.add_dock_widget(widget)
+    """
 
     def __init__(
         self, napari_viewer: "ViewerModel", parent: Optional[QWidget] = None
@@ -70,6 +83,12 @@ class DataPortalWidget(QWidget):
         self, item: QTreeWidgetItem, old_item: QTreeWidgetItem
     ) -> None:
         logger.debug("DataPortalWidget._onListingItemClicked: %s", item)
+        # The new current item can be none when reconnecting since that
+        # clears the listing tree.
+        if item is None:
+            self._metadata.hide()
+            self._open.hide()
+            return
         data = item.data(0, Qt.ItemDataRole.UserRole)
         self._metadata.load(data)
         if isinstance(data, Tomogram):

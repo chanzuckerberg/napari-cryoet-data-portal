@@ -13,7 +13,7 @@ from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import 
 
 
 class ListingTreeWidget(QTreeWidget):
-    """Lists and allows filtering of datasets found in a data portal."""
+    """A filterable tree of items."""
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)

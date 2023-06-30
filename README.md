@@ -1,15 +1,11 @@
 # napari-cryoet-data-portal
 
-[![License MIT](https://img.shields.io/pypi/l/napari-cryoet-data-portal.svg?color=green)](https://github.com/chanzuckerberg/napari-cryoet-data-portal/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-cryoet-data-portal.svg?color=green)](https://pypi.org/project/napari-cryoet-data-portal)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-cryoet-data-portal.svg?color=green)](https://python.org)
 [![tests](https://github.com/chanzuckerberg/napari-cryoet-data-portal/workflows/tests/badge.svg)](https://github.com/chanzuckerberg/napari-cryoet-data-portal/actions)
 [![codecov](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal/branch/main/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-cryoet-data)](https://napari-hub.org/plugins/napari-cryoet-data-portal)
 
-List and open tomograms from the [CZII cryoET data portal] in [napari].
+List and open tomograms from the [CZII CryoET Data Portal] in [napari].
 
-https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/5ad75c51-61f2-4695-8a50-8f9199e63f20
+https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2
 
 ## Installation
 
@@ -21,27 +17,27 @@ You can install the latest development version using [pip]:
 
 Click the *Connect* button to establish a connection to the data portal.
 
-![Connect button and editable URI to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/96ccb89a-f926-4a8f-945b-450e65969855)
+![Connect button and editable URI to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1bc5ecba-daf6-4a14-83a5-332ea5625604)
 
 After connecting to the portal, datasets are added below as they are found.
 
-![Datasets and tomograms in the portal shown as an interactive tree](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/9562b530-a0f8-4c99-80d2-89e26391f23d)
+![Datasets and tomograms in the portal shown as an interactive tree](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/7af78e00-bbba-4c5b-a286-fb865ca8cff0)
 
 Datasets and tomograms can be filtered by specifying a regular expression pattern.
 
-![Datasets and tomograms filtered by the text 26, so that only two are shown](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/a15b27b2-aa1b-4704-af24-36e66805da02)
+![Datasets and tomograms filtered by the text 26, so that only two are shown](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/96a57f4c-290e-4932-aa2d-95d13edd2d8c)
 
 Selecting a dataset displays its metadata, which can be similarly explored and filtered.
 
-![Metadata of dataset 10000 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1e88f78e-47e5-4bfc-84a1-06f8c038f4a4)
+![Metadata of dataset 10000 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/b230720a-9083-4e35-a9db-44071c979fcc)
 
 Selecting a tomogram displays its metadata and also opens the lowest resolution tomogram and all of its associated point annotations in the napari viewer.
 
-![Metadata of tomogram TS_026 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/f0772092-a2b0-406e-a42f-989c513b3bf6)
+![Metadata of tomogram TS_026 shown as an interactive tree of keys and values](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/386b3116-ba16-4f5d-840d-4eafa3dc62b0)
 
 Higher resolution tomograms can be loaded instead by selecting a different resolution and clicking the *Open* button.
 
-![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/fe5c0081-1658-43c0-9cbe-0d997e207b62)
+![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/4e5ccb1c-209e-4690-8375-e87cc242abbc)
 
 In this case, napari only loads the data that needs to be displayed in the canvas.
 While this can reduce the amount of data loaded, it may also cause performance problems when initially opening and exploring the data.
@@ -50,11 +46,11 @@ In general, finding and fetching data from the portal can take a long time.
 All plugin operations that fetch data from the portal try to run concurrently in order to keep interaction with napari and the plugin as responsive as possible.
 These operations can also be cancelled by clicking the *Cancel* button.
 
-![Screenshot 2023-06-07 at 2 38 41 PM](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/3f621a8a-0962-4a25-bee0-3596cec58659)
+![Progress bar with loading status and cancel button](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/2dc316ae-5231-4159-bc93-785548dbf6a5)
 
 ## Contributing
 
-Contributions and ideas are welcome!
+This is still in early development, but contributions and ideas are welcome!
 Don't hesitate to [open an issue] or [open a pull request] to help improve this plugin.
 
 This project adheres to the [Contributor Covenant code of conduct].
@@ -76,7 +72,7 @@ This plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-na
 
 [napari]: https://github.com/napari/napari
 [@napari]: https://github.com/napari
-[CZII cryoET data portal]: https://chanzuckerberg.github.io/cryoet-data-portal
+[CZII CryoET Data Portal]: https://chanzuckerberg.github.io/cryoet-data-portal
 [pip]: https://pypi.org/project/pip/
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
