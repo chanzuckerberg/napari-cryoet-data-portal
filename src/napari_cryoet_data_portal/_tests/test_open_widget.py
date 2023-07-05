@@ -32,8 +32,5 @@ def test_set_tomogram_adds_layers_to_viewer(widget: OpenWidget, tomogram: Tomogr
     with qtbot.waitSignal(widget._progress.finished):
         widget.setTomogram(tomogram)
     
-    # TODO: could be more specific, but we currently get more
-    # points than expected due to the following issue:
-    # https://github.com/chanzuckerberg/cryoet-data-portal/issues/15
-    assert len(widget._viewer.layers) > 1
+    assert len(widget._viewer.layers) == 3
     
