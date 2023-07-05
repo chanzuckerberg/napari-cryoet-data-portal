@@ -56,6 +56,7 @@ class OpenWidget(QGroupBox):
         super().__init__(parent)
 
         self._viewer = viewer
+        self._uri: Optional[str] = None
         self._tomogram: Optional[Tomogram] = None
 
         self.setTitle("Tomogram")
@@ -87,6 +88,10 @@ class OpenWidget(QGroupBox):
         layout.addLayout(control_layout)
         layout.addWidget(self._progress)
         self.setLayout(layout)
+
+    def setUri(self, uri: str) -> None:
+        """Sets the URI of the portal that should be used to open data."""
+        self._uri = uri
 
     def setTomogram(self, tomogram: Tomogram) -> None:
         """Sets the current tomogram that should be opened."""
@@ -134,9 +139,11 @@ class OpenWidget(QGroupBox):
         # Looking up tomogram.tomogram_voxel_spacing.annotations triggers a query
         # using the client from where the tomogram was found.
         # A single client is not thread safe, so we need a new instance for each query.
-        # TODO: pass through URI in setTomogram from main widget.
-        client = Client()
-        annotations = Annotation.find(client, [Annotation.tomogram_voxel_spacing_id == tomogram.tomogram_voxel_spacing_id])
+        client = Client(self._uri)
+        annotations = Annotation.find(
+            client, 
+            [Annotation.tomogram_voxel_spacing_id == tomogram.tomogram_voxel_spacing_id],
+        )
 
         for annotation in annotations:
             data, attrs, layer_type = read_annotation_points(annotation)

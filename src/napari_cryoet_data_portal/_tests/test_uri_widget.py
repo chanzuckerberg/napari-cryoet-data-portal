@@ -1,8 +1,6 @@
 import pytest
 from pytestqt.qtbot import QtBot
 
-from cryoet_data_portal import Client
-
 from napari_cryoet_data_portal._uri_widget import GRAPHQL_URI, UriWidget
 
 
@@ -53,8 +51,8 @@ def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot):
     assert not widget._progress.isVisibleTo(widget)
 
 
-def test_click_disconnect(widget: UriWidget, client: Client, qtbot: QtBot):
-    widget._onConnected(client)
+def test_click_disconnect(widget: UriWidget, qtbot: QtBot):
+    widget._onConnected(GRAPHQL_URI)
 
     with qtbot.waitSignal(widget.disconnected):
         widget._disconnect_button.click()

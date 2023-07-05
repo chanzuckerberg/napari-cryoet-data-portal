@@ -39,8 +39,6 @@ class DataPortalWidget(QWidget):
     ) -> None:
         super().__init__(parent)
 
-        self._client: Optional[Client] = None
-
         self._uri = UriWidget()
 
         self._listing = ListingWidget()
@@ -67,14 +65,13 @@ class DataPortalWidget(QWidget):
 
         self.setLayout(layout)
 
-    def _onUriConnected(self, client: Client) -> None:
+    def _onUriConnected(self, uri: str) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
-        self._client = client
-        self._listing.load(client)
+        self._open.setUri(uri)
+        self._listing.load(uri)
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")
-        self._client = None
         for widget in (self._listing, self._metadata, self._open):
             widget.cancel()
             widget.hide()

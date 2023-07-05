@@ -20,8 +20,8 @@ GRAPHQL_URI = "https://graphql.cryoetdataportal.cziscience.com/v1/graphql"
 class UriWidget(QGroupBox):
     """Connects to a data portal with a specific URI."""
 
-    # Emitted on successful connection to the URI it contains.
-    connected = Signal(object)
+    # Emitted on successful connection with the URI.
+    connected = Signal(str)
     # Emitted when disconnecting from the portal.
     disconnected = Signal()
 
@@ -68,12 +68,13 @@ class UriWidget(QGroupBox):
         self.disconnected.emit()
 
     def _connect(self, uri: str) -> Client:
-        return Client(uri)
+        _ = Client(uri)
+        return uri
 
-    def _onConnected(self, client: Client) -> None:
-        logger.debug("UriWidget._onConnected: %s", client)
+    def _onConnected(self, uri: str) -> None:
+        logger.debug("UriWidget._onConnected: %s", uri)
         self._updateVisibility(True)
-        self.connected.emit(client)
+        self.connected.emit(uri)
 
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
