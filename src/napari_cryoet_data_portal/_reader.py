@@ -10,11 +10,11 @@ from cryoet_data_portal import Annotation
 
 
 OBJECT_COLOR = {
-    'ribosome': 'red',
-    'ribosome, 80 s': 'red',
-    'fatty acid synthase': 'darkblue',
+    "ribosome": "red",
+    "ribosome, 80 s": "red",
+    "fatty acid synthase": "darkblue",
 }
-DEFAULT_OBJECT_COLOR = 'red'
+DEFAULT_OBJECT_COLOR = "red"
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -122,6 +122,7 @@ def read_points_annotations_ndjson(path: str) -> FullLayerData:
         "size": 14,
         "face_color": "red",
         "opacity": 0.5,
+        "out_of_slice_display": True,
     }
     return data, attributes, "points"
 
@@ -147,8 +148,10 @@ def read_annotation_points(annotation: Annotation) -> FullLayerData:
     >>> points = Points(data, **attrs)
     """
     data, attributes, layer_type = read_points_annotations_ndjson(annotation.https_annotations_path)
-    attributes["name"] = annotation.object_name
+    name = annotation.object_name
+    attributes["name"] = name
     attributes["metadata"] = annotation.to_dict()
+    attributes["face_color"] = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
     return data, attributes, layer_type
 
 
