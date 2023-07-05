@@ -38,7 +38,8 @@ class MetadataWidget(QGroupBox):
         """Loads the JSON metadata of the given dataset or tomogram."""
         logger.debug("MetadataWidget.load: %s", data)
         self._main.tree.clear()
-        self.setTitle(f"Metadata: {data.id}")
+        name = data.id if isinstance(data, Dataset) else data.name
+        self.setTitle(f"Metadata: {name}")
         self.show()
         self._progress.submit(data)
 
