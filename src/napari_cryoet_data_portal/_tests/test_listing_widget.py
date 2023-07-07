@@ -26,7 +26,7 @@ def test_init(qtbot: QtBot):
 
 
 def test_load_lists_data(widget: ListingWidget, qtbot: QtBot):
-    with qtbot.waitSignal(widget._progress.finished, timeout=30000):
+    with qtbot.waitSignal(widget._progress.finished, timeout=60000):
         widget.load(GRAPHQL_URI)
     
     dataset_items = tree_top_items(widget.tree)

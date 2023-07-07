@@ -67,7 +67,7 @@ class UriWidget(QGroupBox):
         self._updateVisibility(False)
         self.disconnected.emit()
 
-    def _connect(self, uri: str) -> Client:
+    def _connect(self, uri: str) -> str:
         _ = Client(uri)
         return uri
 
