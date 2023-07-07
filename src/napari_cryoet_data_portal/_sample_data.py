@@ -5,8 +5,8 @@ from npe2.types import FullLayerData
 from cryoet_data_portal import Client, Tomogram, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal import (
-    read_annotation_points,
-    read_tomogram_ome_zarr,
+    read_annotation,
+    read_tomogram,
 )
 
 
@@ -28,19 +28,14 @@ def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
 
     tomogram: Tomogram = next(tomogram_spacing.tomograms)
 
-    tomogram_image = read_tomogram_ome_zarr(tomogram.https_omezarr_dir)
+    tomogram_image = read_tomogram(tomogram)
     # Materialize lowest resolution for speed.
     tomogram_image = (np.asarray(tomogram_image[0][-1]), *tomogram_image[1:])
     tomogram_image[1]["scale"] = (4, 4, 4)
-    # TODO: fix this in reader or data.
-    tomogram_image[1]["name"] = "Tomogram"
 
     annotations = tuple(tomogram_spacing.annotations)
-    ribosome_points = read_annotation_points(annotations[0])
-
-    fatty_acid_points = read_annotation_points(annotations[1])
-    # Make different annotations distinctive.
-    fatty_acid_points[1]["face_color"] = "blue"
+    ribosome_points = read_annotation(annotations[0], tomogram=tomogram)
+    fatty_acid_points = read_annotation(annotations[1], tomogram=tomogram)
 
     return [
         tomogram_image,

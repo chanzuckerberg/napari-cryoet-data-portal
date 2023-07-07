@@ -18,8 +18,8 @@ from cryoet_data_portal import Annotation, Client, Tomogram
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import (
-    read_annotation_points,
-    read_tomogram_ome_zarr,
+    read_annotation,
+    read_tomogram,
 )
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ HIGH_RESOLUTION = Resolution(name="High", indices=(0,), scale=1)
 MID_RESOLUTION = Resolution(name="Mid", indices=(1,), scale=2)
 LOW_RESOLUTION = Resolution(name="Low", indices=(2,), scale=4)
 
-RESOLUTIONS: Tuple[Resolution] = (
+RESOLUTIONS: Tuple[Resolution, ...] = (
     MULTI_RESOLUTION,
     HIGH_RESOLUTION,
     MID_RESOLUTION,
@@ -122,8 +122,7 @@ class OpenWidget(QGroupBox):
         resolution: Resolution,
     ) -> Generator[FullLayerData, None, None]:
         logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
-        image_data, image_attrs, _ = read_tomogram_ome_zarr(tomogram.https_omezarr_dir)
-        image_attrs["name"] = f"{tomogram.name}-tomogram"
+        image_data, image_attrs, _ = read_tomogram(tomogram)
         # Skip indexing for multi-resolution to avoid adding any
         # unnecessary nodes to the dask compute graph.
         if resolution is not MULTI_RESOLUTION:
@@ -146,10 +145,7 @@ class OpenWidget(QGroupBox):
         )
 
         for annotation in annotations:
-            data, attrs, layer_type = read_annotation_points(annotation)
-            name = attrs["name"]
-            attrs["name"] = f"{tomogram.name}-{name}"
-            yield data, attrs, layer_type
+            yield read_annotation(annotation, tomogram=tomogram)
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")
