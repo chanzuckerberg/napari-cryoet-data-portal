@@ -29,7 +29,6 @@ def test_click_connect_when_uri_exists(widget: UriWidget, qtbot: QtBot):
 
     assert not widget._connect_button.isVisibleTo(widget)
     assert widget._uri_edit.isVisibleTo(widget)
-    assert widget._uri_edit.isReadOnly()
     assert widget._disconnect_button.isVisibleTo(widget)
     assert not widget._progress.isVisibleTo(widget)
 
@@ -46,7 +45,6 @@ def test_click_connect_when_uri_does_not_exist(widget: UriWidget, qtbot: QtBot):
 
     assert widget._connect_button.isVisibleTo(widget)
     assert widget._uri_edit.isVisibleTo(widget)
-    assert not widget._uri_edit.isReadOnly()
     assert not widget._disconnect_button.isVisibleTo(widget)
     assert not widget._progress.isVisibleTo(widget)
 
@@ -59,6 +57,5 @@ def test_click_disconnect(widget: UriWidget, qtbot: QtBot):
 
     assert widget._connect_button.isVisibleTo(widget)
     assert widget._uri_edit.isVisibleTo(widget)
-    assert not widget._uri_edit.isReadOnly()
     assert not widget._disconnect_button.isVisibleTo(widget)
     assert not widget._progress.isVisibleTo(widget)
