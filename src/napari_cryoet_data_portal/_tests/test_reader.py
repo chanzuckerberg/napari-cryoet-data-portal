@@ -2,15 +2,16 @@ from typing import Callable
 
 from napari import Viewer
 from napari.layers import Points
+from cryoet_data_portal import Annotation, Client
 
 from napari_cryoet_data_portal import (
-    read_points_annotations_json,
+    read_points_annotations_ndjson,
     read_tomogram_ome_zarr,
 )
-from napari_cryoet_data_portal._model import PORTAL_S3_URI
 
-TOMOGRAM_DIR = f"{PORTAL_S3_URI}/10000/TS_026/Tomograms/VoxelSpacing13.48"
-ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/sara_goetz-ribosome-1.0.json"
+CLOUDFRONT_URI = "https://files.cryoetdataportal.cziscience.com"
+TOMOGRAM_DIR = f"{CLOUDFRONT_URI}/10000/TS_026/Tomograms/VoxelSpacing13.48"
+ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/sara_goetz-ribosome-1.0.ndjson"
 
 
 def test_read_tomogram_ome_zarr():
@@ -26,15 +27,14 @@ def test_read_tomogram_ome_zarr():
     assert layer_type == "image"
 
 
-def test_read_points_annotations_json():
-    data, attrs, layer_type = read_points_annotations_json(ANNOTATION_FILE)
+def test_read_points_annotations_ndjson():
+    data, attrs, layer_type = read_points_annotations_ndjson(ANNOTATION_FILE)
 
     assert len(data) == 838
     assert data[0] == (469, 261, 517)
     assert data[418] == (524, 831, 475)
     assert data[837] == (519, 723, 538)
-    assert attrs["name"] == "Ribosome"
-    assert attrs["face_color"] == "red"
+    assert attrs["name"] == "annotations"
     assert layer_type == "points"
 
 

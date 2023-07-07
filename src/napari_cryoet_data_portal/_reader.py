@@ -1,22 +1,20 @@
 """Functions to read data from the portal into napari types."""
 
-import json
-import os
 from typing import Any, Dict, List, Optional, Tuple
+import fsspec
 
 import ndjson
 from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
-
-from napari_cryoet_data_portal._io import get_open, s3_to_https
+from cryoet_data_portal import Annotation, Tomogram
 
 
 OBJECT_COLOR = {
-    'ribosome': 'red',
-    'ribosome, 80 s': 'red',
-    'fatty acid synthase': 'darkblue',
+    "ribosome": "red",
+    "ribosome, 80 s": "red",
+    "fatty acid synthase": "darkblue",
 }
-DEFAULT_OBJECT_COLOR = 'red'
+DEFAULT_OBJECT_COLOR = "red"
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -71,15 +69,40 @@ def read_tomogram_ome_zarr(path: str) -> FullLayerData:
 
     Examples
     --------
-    >>> from napari.layers import Image
     >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/CanonicalTomogram/TS_026.zarr'
     >>> data, attrs, _ = read_tomogram_ome_zarr(path)
     >>> image = Image(data, **attrs)
     """
-    path = s3_to_https(path)
     reader = napari_get_reader(path)
     layers = reader(path)
     return layers[0]
+
+
+def read_tomogram(tomogram: Tomogram) -> FullLayerData:
+    """Reads a napari image layer from a tomogram.
+
+    Parameters
+    ----------
+    tomogram : Tomogram
+        The tomogram to read.
+
+    Returns
+    -------
+    napari layer data tuple
+        The data, attributes, and type name of the image layer that would be
+        returned by `Image.as_layer_data_tuple`.
+
+    Examples
+    --------
+    >>> client = Client()
+    >>> tomogram = client.find_one(Tomogram)
+    >>> data, attrs, _ = read_tomogram(tomogram)
+    >>> image = Image(data, **attrs)
+    """
+    data, attributes, layer_type = read_tomogram_ome_zarr(tomogram.https_omezarr_dir)
+    attributes["name"] = tomogram.name
+    attributes["metadata"] = tomogram.to_dict()
+    return data, attributes, layer_type
 
 
 def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -88,7 +111,7 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
     Parameters
     ----------
     path : str or sequence of str
-        The path or paths of the annotation JSON file(s) to read.
+        The path or paths of the annotation NDJSON file(s) to read.
 
     Returns
     -------
@@ -109,22 +132,22 @@ def points_annotations_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
     >>> reader = points_annotations_reader(path)
     >>> layers = reader(path)
     """
-    return _read_many_points_annotations
+    return _read_many_points_annotations_ndjson
 
 
-def _read_many_points_annotations(paths: PathOrPaths) -> List[FullLayerData]:
+def _read_many_points_annotations_ndjson(paths: PathOrPaths) -> List[FullLayerData]:
     if isinstance(paths, str):
         paths = [paths]
-    return [read_points_annotations_json(p) for p in paths]
+    return [read_points_annotations_ndjson(p) for p in paths]
 
 
-def read_points_annotations_json(path: str) -> FullLayerData:
-    """Reads a napari points layer from one annotation JSON File.
+def read_points_annotations_ndjson(path: str) -> FullLayerData:
+    """Reads a napari points layer from an NDJSON annotation file.
 
     Parameters
     ----------
     path : str
-        The path of the annotation JSON file to read.
+        The path to the NDJSON annotations file.
 
     Returns
     -------
@@ -134,41 +157,60 @@ def read_points_annotations_json(path: str) -> FullLayerData:
 
     Examples
     --------
-    >>> from napari.layers import Points
     >>> path = 's3://cryoet-data-portal-public/10000/TS_026/Tomograms/VoxelSpacing13.48/Annotations/sara_goetz-ribosome-1.0.json'
-    >>> data, attrs, _ = read_points_annotations_json(path)
+    >>> data, attrs, _ = read_points_annotations_ndjson(path)
     >>> points = Points(data, **attrs)
     """
-    data: List[Tuple[float, float, float]] = []
-    open_ = get_open(path)
-    with open_(path) as f:
-        metadata = json.load(f)
-    data_dir = os.path.dirname(path)
-    for sub_file in metadata["files"]:
-        sub_name = sub_file["file"]
-        sub_path = f"{data_dir}/{sub_name}"
-        sub_data = _read_points_annotations_ndjson(sub_path)
-        data.extend(sub_data)
-    anno_object = metadata["annotation_object"]
-    name = anno_object["name"]
-    face_color = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
+    data = _read_points_data(path)
     attributes = {
-        "name": name,
-        "metadata": metadata,
+        "name": "annotations",
         "size": 14,
-        "face_color": face_color,
+        "face_color": "red",
         "opacity": 0.5,
         "out_of_slice_display": True,
     }
     return data, attributes, "points"
 
 
-def _read_points_annotations_ndjson(
+def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = None) -> FullLayerData:
+    """Reads a napari points layer from an annotation.
+
+    Parameters
+    ----------
+    annotation : Annotation
+        The tomogram annotation.
+    tomogram : Tomogram, optional
+        The associated tomogram, which may be used for other metadata.
+
+    Returns
+    -------
+    napari layer data tuple
+        The data, attributes, and type name of the points layer that would be
+        returned by `Points.as_layer_data_tuple`.
+
+    Examples
+    --------
+    >>> client = Client()
+    >>> annotation = client.find_one(Annotation)
+    >>> data, attrs, _ = read_annotation(annotation)
+    >>> points = Points(data, **attrs)
+    """
+    data, attributes, layer_type = read_points_annotations_ndjson(annotation.https_annotations_path)
+    name = annotation.object_name
+    if tomogram is None:
+        attributes["name"] = name
+    else:
+        attributes["name"] = f"{tomogram.name}-{name}"
+    attributes["metadata"] = annotation.to_dict()
+    attributes["face_color"] = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
+    return data, attributes, layer_type
+
+
+def _read_points_data(
     path: str,
 ) -> List[Tuple[float, float, float]]:
     data: List[Tuple[float, float, float]] = []
-    open_ = get_open(path)
-    with open_(path) as f:
+    with fsspec.open(path) as f:
         sub_data = [
             _annotation_to_point(annotation)
             for annotation in ndjson.load(f)

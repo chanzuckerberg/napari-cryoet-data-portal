@@ -13,13 +13,13 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Annotation, Client, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
-from napari_cryoet_data_portal._model import Tomogram
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import (
-    read_points_annotations_json,
-    read_tomogram_ome_zarr,
+    read_annotation,
+    read_tomogram,
 )
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ HIGH_RESOLUTION = Resolution(name="High", indices=(0,), scale=1)
 MID_RESOLUTION = Resolution(name="Mid", indices=(1,), scale=2)
 LOW_RESOLUTION = Resolution(name="Low", indices=(2,), scale=4)
 
-RESOLUTIONS: Tuple[Resolution] = (
+RESOLUTIONS: Tuple[Resolution, ...] = (
     MULTI_RESOLUTION,
     HIGH_RESOLUTION,
     MID_RESOLUTION,
@@ -56,7 +56,8 @@ class OpenWidget(QGroupBox):
         super().__init__(parent)
 
         self._viewer = viewer
-        self._tomogram : Optional[Tomogram] = None
+        self._uri: Optional[str] = None
+        self._tomogram: Optional[Tomogram] = None
 
         self.setTitle("Tomogram")
 
@@ -88,6 +89,10 @@ class OpenWidget(QGroupBox):
         layout.addWidget(self._progress)
         self.setLayout(layout)
 
+    def setUri(self, uri: str) -> None:
+        """Sets the URI of the portal that should be used to open data."""
+        self._uri = uri
+
     def setTomogram(self, tomogram: Tomogram) -> None:
         """Sets the current tomogram that should be opened."""
         self.cancel()
@@ -117,9 +122,7 @@ class OpenWidget(QGroupBox):
         resolution: Resolution,
     ) -> Generator[FullLayerData, None, None]:
         logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
-        image_data, image_attrs, _ = read_tomogram_ome_zarr(tomogram.image_path)
-        # TODO: read JSON metadata in reader to get name from there.
-        image_attrs["name"] = f"{tomogram.name}-tomogram"
+        image_data, image_attrs, _ = read_tomogram(tomogram)
         # Skip indexing for multi-resolution to avoid adding any
         # unnecessary nodes to the dask compute graph.
         if resolution is not MULTI_RESOLUTION:
@@ -132,11 +135,17 @@ class OpenWidget(QGroupBox):
         )
         yield image_data, image_attrs, "image"
 
-        for p in tomogram.annotation_paths:
-            points_data, points_attrs, _ = read_points_annotations_json(p)
-            annotation_name = points_attrs["name"]
-            points_attrs["name"] = f"{tomogram.name}-{annotation_name}"
-            yield points_data, points_attrs, "points"
+        # Looking up tomogram.tomogram_voxel_spacing.annotations triggers a query
+        # using the client from where the tomogram was found.
+        # A single client is not thread safe, so we need a new instance for each query.
+        client = Client(self._uri)
+        annotations = Annotation.find(
+            client, 
+            [Annotation.tomogram_voxel_spacing_id == tomogram.tomogram_voxel_spacing_id],
+        )
+
+        for annotation in annotations:
+            yield read_annotation(annotation, tomogram=tomogram)
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")

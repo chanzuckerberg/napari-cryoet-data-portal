@@ -6,11 +6,11 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from cryoet_data_portal import Client, Tomogram
 
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
-from napari_cryoet_data_portal._model import Tomogram
 from napari_cryoet_data_portal._open_widget import OpenWidget
 from napari_cryoet_data_portal._uri_widget import UriWidget
 
@@ -67,6 +67,7 @@ class DataPortalWidget(QWidget):
 
     def _onUriConnected(self, uri: str) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
+        self._open.setUri(uri)
         self._listing.load(uri)
 
     def _onUriDisconnected(self) -> None:

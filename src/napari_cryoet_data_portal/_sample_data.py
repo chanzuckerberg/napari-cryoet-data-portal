@@ -2,10 +2,11 @@ from typing import List
 
 import numpy as np
 from npe2.types import FullLayerData
+from cryoet_data_portal import Client, Tomogram, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal import (
-    read_points_annotations_json,
-    read_tomogram_ome_zarr,
+    read_annotation,
+    read_tomogram,
 )
 
 
@@ -20,26 +21,21 @@ def tomogram_10000_ts_027() -> List[FullLayerData]:
 
 
 def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
-    base_uri = f"s3://cryoet-data-portal-public/10000/{name}/Tomograms/VoxelSpacing13.48"
-    tomogram_uri = f"{base_uri}/CanonicalTomogram/{name}.zarr"
-    annotations_uri = f"{base_uri}/Annotations"
-    ribosome_uri = f"{annotations_uri}/sara_goetz-ribosome-1.0.json"
-    fatty_acid_uri = (
-        f"{annotations_uri}/sara_goetz-fatty_acid_synthase-1.0.json"
-    )
+    client = Client()
+    
+    tomogram_spacing_url = f"https://files.cryoetdataportal.cziscience.com/10000/{name}/Tomograms/VoxelSpacing13.48/"
+    tomogram_spacing = next(TomogramVoxelSpacing.find(client, [TomogramVoxelSpacing.https_prefix == tomogram_spacing_url]))
 
-    tomogram_image = read_tomogram_ome_zarr(tomogram_uri)
+    tomogram: Tomogram = next(tomogram_spacing.tomograms)
+
+    tomogram_image = read_tomogram(tomogram)
     # Materialize lowest resolution for speed.
     tomogram_image = (np.asarray(tomogram_image[0][-1]), *tomogram_image[1:])
     tomogram_image[1]["scale"] = (4, 4, 4)
-    # TODO: fix this in reader or data.
-    tomogram_image[1]["name"] = "Tomogram"
 
-    ribosome_points = read_points_annotations_json(ribosome_uri)
-
-    fatty_acid_points = read_points_annotations_json(fatty_acid_uri)
-    # Make different annotations distinctive.
-    fatty_acid_points[1]["face_color"] = "blue"
+    annotations = tuple(tomogram_spacing.annotations)
+    ribosome_points = read_annotation(annotations[0], tomogram=tomogram)
+    fatty_acid_points = read_annotation(annotations[1], tomogram=tomogram)
 
     return [
         tomogram_image,
