@@ -32,6 +32,10 @@ class UriWidget(QGroupBox):
         self._connect_button = QPushButton("Connect")
         self._disconnect_button = QPushButton("Disconnect")
         self._uri_edit = QLineEdit(GRAPHQL_URI)
+        # Only allow the default portal URI because invalid ones will cause
+        # indefinite hangs:
+        # https://github.com/chanzuckerberg/cryoet-data-portal/issues/16
+        self._uri_edit.setReadOnly(True)
         self._uri_edit.setCursorPosition(0)
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
         self._progress: ProgressWidget = ProgressWidget(
@@ -80,4 +84,3 @@ class UriWidget(QGroupBox):
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
         self._connect_button.setVisible(not uri_exists)
         self._disconnect_button.setVisible(uri_exists)
-        self._uri_edit.setReadOnly(uri_exists)
