@@ -9,7 +9,7 @@
 
 List and open tomograms from the CZ Imaging Institute's [CryoET Data Portal] in [napari].
 
-<video title='Preview of the plugin' src='https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2' poster='https://github.com/andy-sweet/napari-cryoet-data-portal/assets/2608297/f8470b1c-2e91-4730-924c-95dc7c6256bb' controls></video>
+<video title='Preview of the plugin' src='https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2' controls></video>
 
 ## Installation
 
