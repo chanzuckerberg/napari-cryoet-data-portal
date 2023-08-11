@@ -7,9 +7,9 @@
 [![Code coverage](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal/branch/main/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-cryoet-data-portal)](https://napari-hub.org/plugins/napari-cryoet-data-portal)
 
-List and open tomograms from the [CZ Imaging Institute's CryoET Data Portal] in [napari].
+List and open tomograms from the CZ Imaging Institute's [CryoET Data Portal] in [napari].
 
-https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2
+<video title='Preview of the plugin' src='https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2' poster='https://github.com/andy-sweet/napari-cryoet-data-portal/assets/2608297/f8470b1c-2e91-4730-924c-95dc7c6256bb' controls></video>
 
 ## Installation
 
@@ -87,7 +87,7 @@ This plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-na
 
 [napari]: https://github.com/napari/napari
 [@napari]: https://github.com/napari
-[CZII CryoET Data Portal]: https://chanzuckerberg.github.io/cryoet-data-portal
+[CryoET Data Portal]: https://chanzuckerberg.github.io/cryoet-data-portal
 [pip]: https://pypi.org/project/pip/
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
