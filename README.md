@@ -1,19 +1,34 @@
 # napari-cryoet-data-portal
 
-[![tests](https://github.com/chanzuckerberg/napari-cryoet-data-portal/workflows/tests/badge.svg)](https://github.com/chanzuckerberg/napari-cryoet-data-portal/actions)
-[![codecov](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal/branch/main/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal)
+[![MIT License](https://img.shields.io/pypi/l/napari-cryoet-data-portal.svg?color=green)](https://github.com/chanzuckerberg/napari-cryoet-data-portal/raw/main/LICENSE)
+[![Python package index](https://img.shields.io/pypi/v/napari-cryoet-data-portal.svg?color=green)](https://pypi.org/project/napari-cryoet-data-portal)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/napari-cryoet-data-portal.svg?color=green)](https://python.org)
+[![Test status](https://github.com/chanzuckerberg/napari-cryoet-data-portal/workflows/tests/badge.svg)](https://github.com/chanzuckerberg/napari-cryoet-data-portal/actions)
+[![Code coverage](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal/branch/main/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/napari-cryoet-data-portal)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-cryoet-data-portal)](https://napari-hub.org/plugins/napari-cryoet-data-portal)
 
-List and open tomograms from the [CZII CryoET Data Portal] in [napari].
+List and open tomograms from the CZ Imaging Institute's [CryoET Data Portal] in [napari].
 
-https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2
+![Plugin showing tomogram TS_026](https://github.com/andy-sweet/napari-cryoet-data-portal/assets/2608297/f8470b1c-2e91-4730-924c-95dc7c6256bb)
 
 ## Installation
 
-You can install the latest development version using [pip]:
+You can install the latest stable version using [pip]:
 
-    pip install git+https://github.com/chanzuckerberg/napari-cryoet-data-portal.git
+    pip install napari-cryoet-data-portal
+
+You will also need to install napari separately as a Python package in the same environment.
+One way to do that with Qt included is to run:
+
+    pip install "napari[all]"
+
+but more generally you should follow the [latest napari installation instructions].
 
 ## Usage
+
+See the following video for a demonstration of basic usage of the plugin.
+
+https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2
 
 Click the *Connect* button to establish a connection to the data portal.
 
@@ -53,6 +68,10 @@ These operations can also be cancelled by clicking the *Cancel* button.
 This is still in early development, but contributions and ideas are welcome!
 Don't hesitate to [open an issue] or [open a pull request] to help improve this plugin.
 
+To setup a development environment, fork this repository, clone your fork, change into its top level directory and run:
+
+    pip install -e ".[testing]"
+
 This project adheres to the [Contributor Covenant code of conduct].
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to opensource@chanzuckerberg.com.
@@ -72,7 +91,7 @@ This plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-na
 
 [napari]: https://github.com/napari/napari
 [@napari]: https://github.com/napari
-[CZII CryoET Data Portal]: https://chanzuckerberg.github.io/cryoet-data-portal
+[CryoET Data Portal]: https://chanzuckerberg.github.io/cryoet-data-portal
 [pip]: https://pypi.org/project/pip/
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
@@ -82,3 +101,4 @@ This plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-na
 [Contributor Covenant code of conduct]: https://github.com/chanzuckerberg/.github/tree/master/CODE_OF_CONDUCT.md
 [open an issue]: https://github.com/chanzuckerberg/napari-cryoet-data-portal/issues
 [open a pull request]: https://github.com/chanzuckerberg/napari-cryoet-data-portal/pulls
+[latest napari installation instructions]: https://napari.org/stable/tutorials/fundamentals/installation.html#install-as-python-package-recommended
