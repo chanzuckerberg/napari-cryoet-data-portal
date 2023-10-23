@@ -39,7 +39,7 @@ class Resolution:
 
         When visualized in napari, this ensures that the different multi-scale
         layers opened separately share the same visual extent in the canvas that
-        starts at (-0.5, -0.5).
+        starts at (-0.5, -0.5, -0.5).
         """
         return (self.scale - 1) / 2
 
