@@ -89,12 +89,3 @@ class ListingWidget(QGroupBox):
             item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)
         self.tree.addTopLevelItem(item)
-
-
-def _find_tomo_by_id(client: Client, tomo_id: int) -> List[Dataset]:
-    datasets = []
-    tomos = TomogramVoxelSpacing.find(client, [TomogramVoxelSpacing.id == tomo_id])
-    for tomo in tomos:
-        datasets.append(tomo.run.dataset)
-    return datasets
-    
