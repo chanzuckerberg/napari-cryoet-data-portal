@@ -48,7 +48,7 @@ class ListingWidget(QGroupBox):
         layout.addStretch(0)
         self.setLayout(layout)
 
-    def load(self, uri: str, *, filter: Filter) -> None:
+    def load(self, uri: str, *, filter: Filter = Filter()) -> None:
         """Lists the datasets and tomograms using the given portal URI."""
         logger.debug("ListingWidget.load: %s, %s", uri, filter)
         self.tree.clear()
