@@ -98,11 +98,11 @@ class UriWidget(QGroupBox):
         self._updateVisibility(False)
         self.disconnected.emit()
 
-    def _connect(self, uri: str, filter: Filter) -> Tuple[str, object]:
+    def _connect(self, uri: str, filter: Filter) -> Tuple[str, Filter]:
         _ = Client(uri)
         return uri, filter
 
-    def _onConnected(self, result: Tuple[str, object]) -> None:
+    def _onConnected(self, result: Tuple[str, Filter]) -> None:
         uri, filter = result
         logger.debug("UriWidget._onConnected: %s, %s", uri, filter)
         self._updateVisibility(True)

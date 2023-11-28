@@ -69,6 +69,7 @@ class DataPortalWidget(QWidget):
     def _onUriConnected(self, uri: str, filter: object) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
         self._open.setUri(uri)
+        # TODO: define custom type for Qt signal.
         self._listing.load(uri, filter=cast(Filter, filter))
 
     def _onUriDisconnected(self) -> None:
