@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -6,8 +6,9 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Client, Tomogram
+from cryoet_data_portal import Tomogram
 
+from napari_cryoet_data_portal._filter import Filter
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
@@ -65,10 +66,10 @@ class DataPortalWidget(QWidget):
 
         self.setLayout(layout)
 
-    def _onUriConnected(self, uri: str, tomo_id: str) -> None:
+    def _onUriConnected(self, uri: str, filter: object) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
         self._open.setUri(uri)
-        self._listing.load(uri, tomo_id=tomo_id)
+        self._listing.load(uri, filter=cast(Filter, filter))
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")

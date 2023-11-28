@@ -10,6 +10,7 @@ from qtpy.QtWidgets import (
 )
 from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
 
+from napari_cryoet_data_portal._filter import Filter
 from napari_cryoet_data_portal._listing_tree_widget import ListingTreeWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
@@ -43,38 +44,35 @@ class ListingWidget(QGroupBox):
         layout.addStretch(0)
         self.setLayout(layout)
 
-    def load(self, uri: str, *, tomo_id: str = "") -> None:
+    def load(self, uri: str, *, filter: Filter) -> None:
         """Lists the datasets and tomograms using the given portal URI."""
-        logger.debug("ListingWidget.load: %s", uri)
+        logger.debug("ListingWidget.load: %s, %s", uri, filter)
         self.tree.clear()
         self.show()
-        self._progress.submit(uri, tomo_id)
+        self._progress.submit(uri, filter)
 
     def cancel(self) -> None:
         """Cancels the last listing."""
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 
-    def _loadDatasets(self, uri: str, tomo_id: str) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    def _loadDatasets(self, uri: str, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
         logger.debug("ListingWidget._loadDatasets: %s", uri)
         client = Client(uri)
         
-        tomo_id_value: Optional[int] = None
-        if len(tomo_id) > 0:
-            try:
-                tomo_id_value = int(tomo_id)
-            except ValueError:
-                logger.error("Failed to parse tomogram ID: %s", tomo_id)
-
-        if tomo_id_value is None:
-            for dataset in Dataset.find(client):
+        dataset_filters = []
+        if filter.dataset_id is not None:
+            dataset_filters.append(Dataset.id == filter.dataset_id)
+        
+        if filter.spacing_id is None:
+            for dataset in Dataset.find(client, dataset_filters):
                 tomograms: List[Tomogram] = []
                 for run in dataset.runs:
                     for spacing in run.tomogram_voxel_spacings:
                         tomograms.extend(spacing.tomograms)
                 yield dataset, tomograms
         else:
-            if spacing := TomogramVoxelSpacing.get_by_id(client, tomo_id_value):
+            if spacing := TomogramVoxelSpacing.get_by_id(client, filter.spacing_id):
                 yield spacing.run.dataset, list(spacing.tomograms)
 
     def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
