@@ -42,21 +42,10 @@ class UriWidget(QGroupBox):
         self._uri_edit.setCursorPosition(0)
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
         
-        dataset_layout = QHBoxLayout()
-        dataset_layout.setContentsMargins(0, 0, 0, 0)
-        self._dataset_id_edit = QLineEdit()
-        dataset_id_label = QLabel("Dataset ID")
-        dataset_id_label.setBuddy(self._dataset_id_edit)
-        dataset_layout.addWidget(dataset_id_label)
-        dataset_layout.addWidget(self._dataset_id_edit)
-        
-        tomo_layout = QHBoxLayout()
-        tomo_layout.setContentsMargins(0, 0, 0, 0)
-        self._tomo_id_edit = QLineEdit()
-        tomo_id_label = QLabel("Voxel spacing ID")
-        tomo_id_label.setBuddy(self._tomo_id_edit)
-        tomo_layout.addWidget(tomo_id_label)
-        tomo_layout.addWidget(self._tomo_id_edit)
+        self._dataset_ids_edit, dataset_widget = _make_labeled_edit(
+            "Dataset IDs", "Comma separated dataset IDs query")
+        self._spacing_ids_edit, spacing_widget = _make_labeled_edit(
+            "Voxel Spacing IDs", "Comma separated voxel spacing IDs to query")
 
         self._progress: ProgressWidget = ProgressWidget(
             work=self._connect,
@@ -67,8 +56,8 @@ class UriWidget(QGroupBox):
         self._connect_button.clicked.connect(self._onConnectClicked)
         self._disconnect_button.clicked.connect(self._onDisconnectClicked)
         self._uri_edit.returnPressed.connect(self._onConnectClicked)
-        self._tomo_id_edit.returnPressed.connect(self._onConnectClicked)
-        self._dataset_id_edit.returnPressed.connect(self._onConnectClicked)
+        self._dataset_ids_edit.returnPressed.connect(self._onConnectClicked)
+        self._spacing_ids_edit.returnPressed.connect(self._onConnectClicked)
 
         control_layout = QHBoxLayout()
         control_layout.setContentsMargins(0, 0, 0, 0)
@@ -78,17 +67,17 @@ class UriWidget(QGroupBox):
 
         layout = QVBoxLayout()
         layout.addLayout(control_layout)
-        layout.addLayout(dataset_layout)
-        layout.addLayout(tomo_layout)
+        layout.addWidget(dataset_widget)
+        layout.addWidget(spacing_widget)
         layout.addWidget(self._progress)
 
         self.setLayout(layout)
 
     def _onConnectClicked(self) -> None:
         uri = self._uri_edit.text().strip()
-        dataset = self._dataset_id_edit.text().strip()
-        spacing = self._tomo_id_edit.text().strip()
-        filter = Filter.from_names(dataset=dataset, spacing=spacing)
+        datasets = self._dataset_ids_edit.text()
+        spacings = self._spacing_ids_edit.text()
+        filter = Filter.from_csv(datasets=datasets, spacings=spacings)
         logger.debug("UriWidget._onConnectClicked: %s, %s", uri, filter)
         self._progress.submit(uri, filter)
 
@@ -111,6 +100,19 @@ class UriWidget(QGroupBox):
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
         self._connect_button.setVisible(not uri_exists)
-        self._dataset_id_edit.setReadOnly(uri_exists)
-        self._tomo_id_edit.setReadOnly(uri_exists)
+        self._dataset_ids_edit.setReadOnly(uri_exists)
+        self._spacing_ids_edit.setReadOnly(uri_exists)
         self._disconnect_button.setVisible(uri_exists)
+
+
+def _make_labeled_edit(label: str, tooltip: str) -> Tuple[QLineEdit, QWidget]:
+    main_widget = QWidget()
+    edit_widget = QLineEdit()
+    label_widget = QLabel(label)
+    main_widget.setToolTip(tooltip)
+    layout = QHBoxLayout()
+    layout.setContentsMargins(0, 0, 0, 0)
+    main_widget.setLayout(layout)
+    layout.addWidget(label_widget)
+    layout.addWidget(edit_widget)
+    return edit_widget, main_widget
