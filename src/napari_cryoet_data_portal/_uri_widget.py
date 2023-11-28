@@ -43,9 +43,9 @@ class UriWidget(QGroupBox):
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
         
         self._dataset_ids_edit, dataset_widget = _make_labeled_edit(
-            "Dataset IDs", "Comma separated dataset IDs query")
+            "Dataset IDs", "Comma separated dataset IDs of interest")
         self._spacing_ids_edit, spacing_widget = _make_labeled_edit(
-            "Voxel Spacing IDs", "Comma separated voxel spacing IDs to query")
+            "Voxel Spacing IDs", "Comma separated voxel spacing IDs of interest")
 
         self._progress: ProgressWidget = ProgressWidget(
             work=self._connect,
