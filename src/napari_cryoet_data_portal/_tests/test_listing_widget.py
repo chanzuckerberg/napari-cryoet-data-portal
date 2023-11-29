@@ -1,6 +1,4 @@
-from typing import Optional
-
-from cryoet_data_portal import Client, TomogramVoxelSpacing
+from cryoet_data_portal import Client, Dataset, TomogramVoxelSpacing
 import pytest
 from pytestqt.qtbot import QtBot
 
@@ -32,7 +30,7 @@ def test_init(qtbot: QtBot):
 def test_load_lists_data(widget: ListingWidget, qtbot: QtBot):
     # Query two small, specific datasets to limit time spent
     # on this test and to exercise dataset filter.
-    filter = Filter(dataset_ids=(10000, 10001))
+    filter = Filter(type=Dataset, ids=(10000, 10001))
 
     with qtbot.waitSignal(widget._progress.finished, timeout=60000):
         widget.load(GRAPHQL_URI, filter=filter)
@@ -49,7 +47,7 @@ def test_load_with_spacing_filter_lists_only_that_data(widget: ListingWidget, qt
     client = Client()
     spacing = client.find_one(TomogramVoxelSpacing)
     assert spacing is not None
-    filter = Filter(spacing_ids=(spacing.id,))
+    filter = Filter(TomogramVoxelSpacing, ids=(spacing.id,))
 
     with qtbot.waitSignal(widget._progress.finished, timeout=60000):
         widget.load(GRAPHQL_URI, filter=filter)

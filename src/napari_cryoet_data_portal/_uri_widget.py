@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
+    QComboBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -10,7 +11,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Client
+from cryoet_data_portal import Client, Dataset, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal._filter import Filter
 from napari_cryoet_data_portal._logging import logger
@@ -18,6 +19,7 @@ from napari_cryoet_data_portal._progress_widget import ProgressWidget
 
 
 GRAPHQL_URI = "https://graphql.cryoetdataportal.cziscience.com/v1/graphql"
+
 
 class UriWidget(QGroupBox):
     """Connects to a data portal with a specific URI."""
@@ -42,11 +44,16 @@ class UriWidget(QGroupBox):
         self._uri_edit.setCursorPosition(0)
         self._uri_edit.setPlaceholderText("Enter a URI to CryoET portal data")
         
-        self._dataset_ids_edit, dataset_widget = _make_labeled_edit(
-            "Dataset IDs", "Comma separated dataset IDs of interest")
-        self._spacing_ids_edit, spacing_widget = _make_labeled_edit(
-            "Voxel Spacing IDs", "Comma separated voxel spacing IDs of interest")
-
+        filter_ids_layout = QHBoxLayout()
+        filter_ids_layout.setContentsMargins(0, 0, 0, 0)
+        self._filter_ids_type = QComboBox()
+        self._filter_ids_type.addItem("Dataset IDs", Dataset)
+        self._filter_ids_type.addItem("Voxel Spacing IDs", TomogramVoxelSpacing)
+        self._filter_ids_edit = QLineEdit()
+        self._filter_ids_edit.setToolTip("Comma separated IDs of interest")
+        filter_ids_layout.addWidget(self._filter_ids_type)
+        filter_ids_layout.addWidget(self._filter_ids_edit)
+        
         self._progress: ProgressWidget = ProgressWidget(
             work=self._connect,
             returnCallback=self._onConnected,
@@ -56,8 +63,7 @@ class UriWidget(QGroupBox):
         self._connect_button.clicked.connect(self._onConnectClicked)
         self._disconnect_button.clicked.connect(self._onDisconnectClicked)
         self._uri_edit.returnPressed.connect(self._onConnectClicked)
-        self._dataset_ids_edit.returnPressed.connect(self._onConnectClicked)
-        self._spacing_ids_edit.returnPressed.connect(self._onConnectClicked)
+        self._filter_ids_edit.returnPressed.connect(self._onConnectClicked)
 
         control_layout = QHBoxLayout()
         control_layout.setContentsMargins(0, 0, 0, 0)
@@ -67,17 +73,17 @@ class UriWidget(QGroupBox):
 
         layout = QVBoxLayout()
         layout.addLayout(control_layout)
-        layout.addWidget(dataset_widget)
-        layout.addWidget(spacing_widget)
+        layout.addLayout(filter_ids_layout)
         layout.addWidget(self._progress)
 
         self.setLayout(layout)
 
     def _onConnectClicked(self) -> None:
         uri = self._uri_edit.text().strip()
-        datasets = self._dataset_ids_edit.text()
-        spacings = self._spacing_ids_edit.text()
-        filter = Filter.from_csv(datasets=datasets, spacings=spacings)
+        filter = Filter.from_csv(
+            self._filter_ids_type.currentData(),
+            csv=self._filter_ids_edit.text(),
+        )
         logger.debug("UriWidget._onConnectClicked: %s, %s", uri, filter)
         self._progress.submit(uri, filter)
 
@@ -100,19 +106,6 @@ class UriWidget(QGroupBox):
     def _updateVisibility(self, uri_exists: bool) -> None:
         logger.debug("UriWidget._updateVisibility: %s", uri_exists)
         self._connect_button.setVisible(not uri_exists)
-        self._dataset_ids_edit.setReadOnly(uri_exists)
-        self._spacing_ids_edit.setReadOnly(uri_exists)
+        self._filter_ids_type.setDisabled(uri_exists)
+        self._filter_ids_edit.setReadOnly(uri_exists)
         self._disconnect_button.setVisible(uri_exists)
-
-
-def _make_labeled_edit(label: str, tooltip: str) -> Tuple[QLineEdit, QWidget]:
-    main_widget = QWidget()
-    edit_widget = QLineEdit()
-    label_widget = QLabel(label)
-    main_widget.setToolTip(tooltip)
-    layout = QHBoxLayout()
-    layout.setContentsMargins(0, 0, 0, 0)
-    main_widget.setLayout(layout)
-    layout.addWidget(label_widget)
-    layout.addWidget(edit_widget)
-    return edit_widget, main_widget

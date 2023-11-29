@@ -1,20 +1,29 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple, Type, Union
+
+from cryoet_data_portal import Dataset, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal._logging import logger
+
+# Guard with type checking because this is a private import.
+if TYPE_CHECKING:
+    from cryoet_data_portal._gql_base import GQLExpression
 
 
 @dataclass(frozen=True)
 class Filter:
-    dataset_ids: Tuple[int, ...] = ()
-    spacing_ids: Tuple[int, ...] = ()
+    type: Union[Type[Dataset], Type[TomogramVoxelSpacing]] = Dataset
+    ids: Tuple[int, ...] = ()
+
+    def to_gql(self) -> Tuple["GQLExpression", ...]:
+        return () if len(self.ids) == 0 else (self.type.id._in(self.ids),)
 
     @classmethod
-    def from_csv(cls, *, datasets: str, spacings: str) -> Filter:
+    def from_csv(cls, type, *, csv: str) -> Filter:
         return cls(
-            dataset_ids=_csv_to_ids(datasets),
-            spacing_ids=_csv_to_ids(spacings),
+            type=type,
+            ids=_csv_to_ids(csv),
         )
 
 

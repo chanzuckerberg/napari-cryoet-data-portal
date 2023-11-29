@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Generator, List, Optional, Tuple, Type
+from typing import Dict, Generator, List, Optional, Tuple
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -18,10 +18,6 @@ from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._vendored.superqt._searchable_tree_widget import (
     _update_visible_items,
 )
-
-# Guard with type checking because this is a private import.
-if TYPE_CHECKING:
-    from cryoet_data_portal._gql_base import GQLExpression, GQLField
 
 
 class ListingWidget(QGroupBox):
@@ -65,25 +61,10 @@ class ListingWidget(QGroupBox):
         logger.debug("ListingWidget._loadDatasets: %s", uri)
         client = Client(uri)
         
-        if len(filter.spacing_ids) > 0:
-            spacing_filters = _ids_to_gql_expressions(TomogramVoxelSpacing, filter.spacing_ids)
-            datasets: Dict[int, Dataset] = {}
-            dataset_tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
-            for spacing in TomogramVoxelSpacing.find(client, spacing_filters):
-                dataset = spacing.run.dataset
-                if (len(filter.dataset_ids) == 0) or (dataset.id in filter.dataset_ids):
-                    dataset_tomograms[dataset.id].extend(spacing.tomograms)
-                    datasets[dataset.id] = dataset
-            for dataset_id, dataset in datasets.items():
-                yield dataset, dataset_tomograms[dataset_id]
+        if (filter.type is TomogramVoxelSpacing) and (len(filter.ids) > 0):
+            yield from _load_datasets_from_spacings(client, filter)
         else:
-            dataset_filters = _ids_to_gql_expressions(Dataset, filter.dataset_ids)
-            for dataset in Dataset.find(client, dataset_filters):
-                tomograms: List[Tomogram] = []
-                for run in dataset.runs:
-                    for spacing in run.tomogram_voxel_spacings:
-                        tomograms.extend(spacing.tomograms)
-                yield dataset, tomograms
+            yield from _load_datasets(client, filter)
 
     def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
         dataset, tomograms = result
@@ -99,5 +80,21 @@ class ListingWidget(QGroupBox):
         self.tree.addTopLevelItem(item)
 
 
-def _ids_to_gql_expressions(cls: Type["GQLField"], ids: Tuple[int, ...]) -> Tuple["GQLExpression", ...]:
-    return () if len(ids) == 0 else (cls.id._in(ids),)
+def _load_datasets(client: Client, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    for dataset in Dataset.find(client, filter.to_gql()):
+        tomograms: List[Tomogram] = []
+        for run in dataset.runs:
+            for spacing in run.tomogram_voxel_spacings:
+                tomograms.extend(spacing.tomograms)
+        yield dataset, tomograms
+
+
+def _load_datasets_from_spacings(client: Client, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    datasets: Dict[int, Dataset] = {}
+    tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
+    for spacing in TomogramVoxelSpacing.find(client, filter.to_gql()):
+        dataset = spacing.run.dataset
+        datasets[dataset.id] = dataset
+        tomograms[dataset.id].extend(spacing.tomograms)
+    for i in datasets:
+        yield datasets[i], tomograms[i]
