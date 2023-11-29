@@ -5,7 +5,6 @@ from qtpy.QtWidgets import (
     QComboBox,
     QGroupBox,
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
@@ -13,7 +12,7 @@ from qtpy.QtWidgets import (
 )
 from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
 
-from napari_cryoet_data_portal._filter import Filter
+from napari_cryoet_data_portal._filter import Filter, make_filter
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 
@@ -81,9 +80,10 @@ class UriWidget(QGroupBox):
 
     def _onConnectClicked(self) -> None:
         uri = self._uri_edit.text().strip()
-        filter = Filter.from_csv(
+        filter_ids = _csv_to_ids(self._filter_ids_edit.text())
+        filter = make_filter(
             self._filter_ids_type.currentData(),
-            csv=self._filter_ids_edit.text(),
+            ids=filter_ids,
         )
         logger.debug("UriWidget._onConnectClicked: %s, %s", uri, filter)
         self._progress.submit(uri, filter)
@@ -110,3 +110,15 @@ class UriWidget(QGroupBox):
         self._filter_ids_type.setDisabled(uri_exists)
         self._filter_ids_edit.setReadOnly(uri_exists)
         self._disconnect_button.setVisible(uri_exists)
+
+
+def _csv_to_ids(csv: str) -> Tuple[int, ...]:
+    ids: Tuple[int, ...] = ()
+    csv = csv.strip()
+    if len(csv) > 0:
+        try:
+            names = csv.split(",")
+            ids = tuple(int(name) for name in names)
+        except ValueError as e:
+            raise ValueError(f"Failed to parse numeric IDs: {csv}") from e
+    return ids

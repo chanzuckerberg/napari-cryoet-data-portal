@@ -9,7 +9,7 @@ from pytestqt.qtbot import QtBot
 from qtpy.QtWidgets import QWidget
 
 from napari_cryoet_data_portal import DataPortalWidget
-from napari_cryoet_data_portal._filter import Filter
+from napari_cryoet_data_portal._filter import DatasetFilter
 from napari_cryoet_data_portal._uri_widget import GRAPHQL_URI
 
 
@@ -63,7 +63,7 @@ def test_listing_item_changed_to_none(widget: DataPortalWidget):
 
 def test_connected_loads_listing(widget: DataPortalWidget, mocker: MockerFixture):
     mocker.patch.object(widget._listing, 'load')
-    filter = Filter()
+    filter = DatasetFilter()
 
     widget._uri.connected.emit(GRAPHQL_URI, filter)
 

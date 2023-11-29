@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Optional
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -8,7 +8,6 @@ from qtpy.QtWidgets import (
 )
 from cryoet_data_portal import Tomogram
 
-from napari_cryoet_data_portal._filter import Filter
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
@@ -69,8 +68,7 @@ class DataPortalWidget(QWidget):
     def _onUriConnected(self, uri: str, filter: object) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
         self._open.setUri(uri)
-        # TODO: define custom type for Qt signal.
-        self._listing.load(uri, filter=cast(Filter, filter))
+        self._listing.load(uri, filter=filter)
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")
