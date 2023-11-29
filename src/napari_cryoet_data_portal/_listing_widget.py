@@ -61,10 +61,12 @@ class ListingWidget(QGroupBox):
         logger.debug("ListingWidget._loadDatasets: %s", uri)
         client = Client(uri)
         
-        if (filter.type is TomogramVoxelSpacing) and (len(filter.ids) > 0):
-            yield from _load_datasets_from_spacings(client, filter)
-        else:
+        if (filter.type is Dataset) or (len(filter.ids) == 0):
             yield from _load_datasets(client, filter)
+        elif filter.type is TomogramVoxelSpacing:
+            yield from _load_datasets_from_spacings(client, filter)
+        elif filter.type is Tomogram:
+            yield from _load_datasets_from_tomograms(client, filter)
 
     def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
         dataset, tomograms = result
@@ -81,6 +83,7 @@ class ListingWidget(QGroupBox):
 
 
 def _load_datasets(client: Client, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    assert filter.type is Dataset
     for dataset in Dataset.find(client, filter.to_gql()):
         tomograms: List[Tomogram] = []
         for run in dataset.runs:
@@ -89,7 +92,20 @@ def _load_datasets(client: Client, filter: Filter) -> Generator[Tuple[Dataset, L
         yield dataset, tomograms
 
 
+def _load_datasets_from_tomograms(client: Client, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    assert filter.type is Tomogram
+    datasets: Dict[int, Dataset] = {}
+    tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
+    for tomogram in Tomogram.find(client, filter.to_gql()):
+        dataset = tomogram.tomogram_voxel_spacing.run.dataset
+        datasets[dataset.id] = dataset
+        tomograms[dataset.id].append(tomogram)
+    for i in datasets:
+        yield datasets[i], tomograms[i]
+
+
 def _load_datasets_from_spacings(client: Client, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    assert filter.type is TomogramVoxelSpacing
     datasets: Dict[int, Dataset] = {}
     tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
     for spacing in TomogramVoxelSpacing.find(client, filter.to_gql()):

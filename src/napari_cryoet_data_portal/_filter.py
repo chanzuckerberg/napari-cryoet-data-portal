@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Tuple, Type, Union
 
-from cryoet_data_portal import Dataset, TomogramVoxelSpacing
+from cryoet_data_portal import Dataset, Tomogram, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal._logging import logger
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class Filter:
-    type: Union[Type[Dataset], Type[TomogramVoxelSpacing]] = Dataset
+    type: Union[Type[Dataset], Type[Tomogram], Type[TomogramVoxelSpacing]] = Dataset
     ids: Tuple[int, ...] = ()
 
     def to_gql(self) -> Tuple["GQLExpression", ...]:

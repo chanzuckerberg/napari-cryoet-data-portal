@@ -11,7 +11,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Client, Dataset, TomogramVoxelSpacing
+from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
 
 from napari_cryoet_data_portal._filter import Filter
 from napari_cryoet_data_portal._logging import logger
@@ -49,6 +49,7 @@ class UriWidget(QGroupBox):
         self._filter_ids_type = QComboBox()
         self._filter_ids_type.addItem("Dataset IDs", Dataset)
         self._filter_ids_type.addItem("Voxel Spacing IDs", TomogramVoxelSpacing)
+        self._filter_ids_type.addItem("Tomogram IDs", Tomogram)
         self._filter_ids_edit = QLineEdit()
         self._filter_ids_edit.setToolTip("Comma separated IDs of interest")
         filter_ids_layout.addWidget(self._filter_ids_type)

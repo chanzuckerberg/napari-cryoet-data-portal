@@ -1,4 +1,4 @@
-from cryoet_data_portal import Client, Dataset, TomogramVoxelSpacing
+from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
 import pytest
 from pytestqt.qtbot import QtBot
 
@@ -48,6 +48,21 @@ def test_load_with_spacing_filter_lists_only_that_data(widget: ListingWidget, qt
     spacing = client.find_one(TomogramVoxelSpacing)
     assert spacing is not None
     filter = Filter(TomogramVoxelSpacing, ids=(spacing.id,))
+
+    with qtbot.waitSignal(widget._progress.finished, timeout=60000):
+        widget.load(GRAPHQL_URI, filter=filter)
+
+    dataset_items = tree_top_items(widget.tree)
+    assert len(dataset_items) == 1
+    tomogram_items = tree_item_children(dataset_items[0])
+    assert len(tomogram_items) > 0
+
+
+def test_load_with_tomogram_filter_lists_only_that_data(widget: ListingWidget, qtbot: QtBot):
+    client = Client()
+    tomogram = client.find_one(Tomogram)
+    assert tomogram is not None
+    filter = Filter(Tomogram, ids=(tomogram.id,))
 
     with qtbot.waitSignal(widget._progress.finished, timeout=60000):
         widget.load(GRAPHQL_URI, filter=filter)
