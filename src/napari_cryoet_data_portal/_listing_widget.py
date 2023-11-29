@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import Dict, Generator, List, Optional, Tuple
 
 from qtpy.QtCore import Qt
@@ -9,7 +8,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
+from cryoet_data_portal import Client, Dataset, Tomogram
 
 from napari_cryoet_data_portal._filter import DatasetFilter, Filter
 from napari_cryoet_data_portal._listing_tree_widget import ListingTreeWidget

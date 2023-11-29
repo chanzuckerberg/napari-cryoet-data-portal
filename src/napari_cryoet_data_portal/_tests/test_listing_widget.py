@@ -1,8 +1,8 @@
-from cryoet_data_portal import Client, Dataset, Tomogram, TomogramVoxelSpacing
+from cryoet_data_portal import Client, Run, Tomogram, TomogramVoxelSpacing
 import pytest
 from pytestqt.qtbot import QtBot
 
-from napari_cryoet_data_portal._filter import DatasetFilter, SpacingFilter, TomogramFilter
+from napari_cryoet_data_portal._filter import DatasetFilter, RunFilter, SpacingFilter, TomogramFilter
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._tests._utils import (
     tree_item_children,
@@ -40,6 +40,21 @@ def test_load_lists_data(widget: ListingWidget, qtbot: QtBot):
     tomogram_items = tree_item_children(dataset_items[0])
     assert len(tomogram_items) > 0
     tomogram_items = tree_item_children(dataset_items[1])
+    assert len(tomogram_items) > 0
+
+
+def test_load_with_run_filter_lists_only_that_data(widget: ListingWidget, qtbot: QtBot):
+    client = Client()
+    run = client.find_one(Run)
+    assert run is not None
+    filter = RunFilter(ids=(run.id,))
+
+    with qtbot.waitSignal(widget._progress.finished, timeout=60000):
+        widget.load(GRAPHQL_URI, filter=filter)
+
+    dataset_items = tree_top_items(widget.tree)
+    assert len(dataset_items) == 1
+    tomogram_items = tree_item_children(dataset_items[0])
     assert len(tomogram_items) > 0
 
 
