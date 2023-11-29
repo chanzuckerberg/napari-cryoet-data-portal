@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Generator, List, Optional, Tuple, Type
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict, Generator, List, Optional, Tuple, Type
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -66,10 +67,15 @@ class ListingWidget(QGroupBox):
         
         if len(filter.spacing_ids) > 0:
             spacing_filters = _ids_to_gql_expressions(TomogramVoxelSpacing, filter.spacing_ids)
+            datasets: Dict[int, Dataset] = {}
+            dataset_tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
             for spacing in TomogramVoxelSpacing.find(client, spacing_filters):
                 dataset = spacing.run.dataset
                 if (len(filter.dataset_ids) == 0) or (dataset.id in filter.dataset_ids):
-                    yield spacing.run.dataset, list(spacing.tomograms)
+                    dataset_tomograms[dataset.id].extend(spacing.tomograms)
+                    datasets[dataset.id] = dataset
+            for dataset_id, dataset in datasets.items():
+                yield dataset, dataset_tomograms[dataset_id]
         else:
             dataset_filters = _ids_to_gql_expressions(Dataset, filter.dataset_ids)
             for dataset in Dataset.find(client, dataset_filters):
