@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -10,6 +10,7 @@ from qtpy.QtWidgets import (
 )
 from cryoet_data_portal import Client, Dataset, Tomogram
 
+from napari_cryoet_data_portal._filter import DatasetFilter, Filter
 from napari_cryoet_data_portal._listing_tree_widget import ListingTreeWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
@@ -43,27 +44,22 @@ class ListingWidget(QGroupBox):
         layout.addStretch(0)
         self.setLayout(layout)
 
-    def load(self, uri: str) -> None:
+    def load(self, uri: str, *, filter: Filter = DatasetFilter()) -> None:
         """Lists the datasets and tomograms using the given portal URI."""
-        logger.debug("ListingWidget.load: %s", uri)
+        logger.debug("ListingWidget.load: %s, %s", uri, filter)
         self.tree.clear()
         self.show()
-        self._progress.submit(uri)
+        self._progress.submit(uri, filter)
 
     def cancel(self) -> None:
         """Cancels the last listing."""
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 
-    def _loadDatasets(self, uri: str) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    def _loadDatasets(self, uri: str, filter: Filter) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
         logger.debug("ListingWidget._loadDatasets: %s", uri)
         client = Client(uri)
-        for dataset in Dataset.find(client):
-            tomograms: List[Tomogram] = []
-            for run in dataset.runs:
-                for spacing in run.tomogram_voxel_spacings:
-                    tomograms.extend(spacing.tomograms)
-            yield dataset, tomograms
+        yield from filter.load(client)
 
     def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
         dataset, tomograms = result
