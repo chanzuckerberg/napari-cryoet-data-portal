@@ -9,7 +9,7 @@
 
 List and open tomograms from the CZ Imaging Institute's [CryoET Data Portal] in [napari].
 
-![Plugin showing tomogram TS_026](https://github.com/andy-sweet/napari-cryoet-data-portal/assets/2608297/f8470b1c-2e91-4730-924c-95dc7c6256bb)
+![Plugin showing tomogram TS_043](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/61427a1f-df88-4e12-a680-32b8a10b6e6b)
 
 ## Installation
 
@@ -28,11 +28,17 @@ but more generally you should follow the [latest napari installation instruction
 
 See the following video for a demonstration of basic usage of the plugin.
 
-https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/6ccbd314-fd2b-40aa-abeb-dd1afe2a61e2
+https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/51207e08-68af-446a-87bb-3de9c6756d35
 
 Click the *Connect* button to establish a connection to the data portal.
 
-![Connect button and editable URI to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/1bc5ecba-daf6-4a14-83a5-332ea5625604)
+![Connect button and URL to the portal](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/acefbbe8-855a-490b-be44-45a003069b08)
+
+You can optionally query a subset of datasets, runs, voxel spacings, or tomograms using their corresponding IDs.
+This can speed up the listing process as the portal grows.
+To do so, select an ID type in the associated drop-down box from this panel, then enter the IDs of interest separated by commas in the text box next to it.
+For example, if you only want to list datasets 10000 and 10001, select *Dataset IDs* from the drop-down box and enter the text *10000,10001* in the text box.
+By default, all datasets are listed.
 
 After connecting to the portal, datasets are added below as they are found.
 
@@ -52,10 +58,12 @@ Selecting a tomogram displays its metadata and also opens the lowest resolution 
 
 Higher resolution tomograms can be loaded instead by selecting a different resolution and clicking the *Open* button.
 
-![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/4e5ccb1c-209e-4690-8375-e87cc242abbc)
+![Open button and resolution selector showing high resolution](https://github.com/chanzuckerberg/napari-cryoet-data-portal/assets/2608297/d84c93b2-e6e7-43ee-aeb9-acd1a314637e)
 
 In this case, napari only loads the data that needs to be displayed in the canvas.
 While this can reduce the amount of data loaded, it may also cause performance problems when initially opening and exploring the data.
+By default, opening a new tomogram clears all the existing layers in napari.
+If instead you want to keep those layers, uncheck the associated check-box in this panel.
 
 In general, finding and fetching data from the portal can take a long time.
 All plugin operations that fetch data from the portal try to run concurrently in order to keep interaction with napari and the plugin as responsive as possible.
