@@ -26,7 +26,7 @@ class PreviewWidget(QGroupBox):
 
         self._uri: Optional[str] = None
 
-        self.setTitle("Preview")
+        self.setTitle("Tomograms")
         self.list = PreviewListWidget()
         self._progress = ProgressWidget(
             work=self._loadTomograms,

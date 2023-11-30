@@ -24,7 +24,7 @@ class ListingWidget(QGroupBox):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
-        self.setTitle("Data")
+        self.setTitle("Datasets")
         self.tree = ListingTreeWidget()
         self.filter = QLineEdit()
         self.filter.setPlaceholderText("Filter datasets and tomograms")
@@ -55,25 +55,15 @@ class ListingWidget(QGroupBox):
         logger.debug("ListingWidget.cancel")
         self._progress.cancel()
 
-    def _loadDatasets(self, uri: str) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    def _loadDatasets(self, uri: str) -> Generator[Dataset, None, None]:
         logger.debug("ListingWidget._loadDatasets: %s", uri)
         client = Client(uri)
-        for dataset in Dataset.find(client):
-            tomograms: List[Tomogram] = []
-            for run in dataset.runs:
-                for spacing in run.tomogram_voxel_spacings:
-                    tomograms.extend(spacing.tomograms)
-            yield dataset, tomograms
+        yield from Dataset.find(client)
 
-    def _onDatasetLoaded(self, result: Tuple[Dataset, List[Tomogram]]) -> None:
-        dataset, tomograms = result
+    def _onDatasetLoaded(self, dataset: Dataset) -> None:
         logger.debug("ListingWidget._onDatasetLoaded: %s", dataset.id)
-        text = f"{dataset.id} ({len(tomograms)})"
+        text = f"{dataset.id}"
         item = QTreeWidgetItem((text,))
         item.setData(0, Qt.ItemDataRole.UserRole, dataset)
-        for tomogram in tomograms:
-            tomogram_item = QTreeWidgetItem((tomogram.name,))
-            tomogram_item.setData(0, Qt.ItemDataRole.UserRole, tomogram)
-            item.addChild(tomogram_item)
         _update_visible_items(item, self.tree.last_filter)
         self.tree.addTopLevelItem(item)
