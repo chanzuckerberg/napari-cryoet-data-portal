@@ -48,7 +48,7 @@ class UriWidget(QGroupBox):
         self._filter_ids_type = QComboBox()
         self._filter_ids_type.addItem("Dataset IDs", Dataset)
         self._filter_ids_type.addItem("Run IDs", Run)
-        self._filter_ids_type.addItem("Spacing IDs", TomogramVoxelSpacing)
+        self._filter_ids_type.addItem("Voxel Spacing IDs", TomogramVoxelSpacing)
         self._filter_ids_type.addItem("Tomogram IDs", Tomogram)
         self._filter_ids_edit = QLineEdit()
         self._filter_ids_edit.setToolTip("Comma separated IDs of interest")
