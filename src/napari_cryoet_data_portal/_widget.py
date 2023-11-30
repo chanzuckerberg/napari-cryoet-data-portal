@@ -6,12 +6,13 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Client, Tomogram
+from cryoet_data_portal import Tomogram
 
 from napari_cryoet_data_portal._listing_widget import ListingWidget
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._metadata_widget import MetadataWidget
 from napari_cryoet_data_portal._open_widget import OpenWidget
+from napari_cryoet_data_portal._preview_widget import PreviewWidget
 from napari_cryoet_data_portal._uri_widget import UriWidget
 
 if TYPE_CHECKING:
@@ -44,6 +45,9 @@ class DataPortalWidget(QWidget):
         self._listing = ListingWidget()
         self._listing.hide()
 
+        self._preview = PreviewWidget()
+        self._preview.hide()
+
         self._metadata = MetadataWidget()
         self._metadata.hide()
 
@@ -59,6 +63,7 @@ class DataPortalWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self._uri)
         layout.addWidget(self._listing, 1)
+        layout.addWidget(self._preview, 1)
         layout.addWidget(self._metadata, 1)
         layout.addWidget(self._open)
         layout.addStretch(0)
@@ -67,12 +72,13 @@ class DataPortalWidget(QWidget):
 
     def _onUriConnected(self, uri: str) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
+        self._preview.setUri(uri)
         self._open.setUri(uri)
         self._listing.load(uri)
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")
-        for widget in (self._listing, self._metadata, self._open):
+        for widget in (self._listing, self._preview, self._metadata, self._open):
             widget.cancel()
             widget.hide()
 
@@ -87,8 +93,10 @@ class DataPortalWidget(QWidget):
             self._open.hide()
             return
         data = item.data(0, Qt.ItemDataRole.UserRole)
-        self._metadata.load(data)
+        #self._metadata.load(data)
         if isinstance(data, Tomogram):
             self._open.setTomogram(data)
+            self._preview.hide()
         else:
+            self._preview.load(data)
             self._open.hide()
