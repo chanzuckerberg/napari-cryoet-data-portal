@@ -165,7 +165,15 @@ class OpenWidget(QGroupBox):
         )
 
         for annotation in annotations:
-            yield read_annotation(annotation, tomogram=tomogram)
+            point_paths = tuple(
+                f.https_path
+                for f in annotation.files
+                if f.shape_type == "Point"
+            )
+            if len(point_paths) > 0:
+                yield read_annotation(annotation, tomogram=tomogram)
+            else:
+                logger.warn("Found no points annotations. Skipping.")
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")
