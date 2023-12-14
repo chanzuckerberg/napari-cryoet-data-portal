@@ -2,7 +2,6 @@ from typing import Callable
 
 from napari import Viewer
 from napari.layers import Points
-from cryoet_data_portal import Annotation, Client
 
 from napari_cryoet_data_portal import (
     read_points_annotations_ndjson,
@@ -10,8 +9,8 @@ from napari_cryoet_data_portal import (
 )
 
 CLOUDFRONT_URI = "https://files.cryoetdataportal.cziscience.com"
-TOMOGRAM_DIR = f"{CLOUDFRONT_URI}/10000/TS_026/Tomograms/VoxelSpacing13.48"
-ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/sara_goetz-ribosome-1.0.ndjson"
+TOMOGRAM_DIR = f"{CLOUDFRONT_URI}/10000/TS_026/Tomograms/VoxelSpacing13.480"
+ANNOTATION_FILE = f"{TOMOGRAM_DIR}/Annotations/101-cytosolic_ribosome-1.0_point.ndjson"
 
 
 def test_read_tomogram_ome_zarr():

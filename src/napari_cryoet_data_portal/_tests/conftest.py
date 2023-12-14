@@ -15,4 +15,4 @@ def dataset(client: Client) -> Dataset:
 
 @pytest.fixture()
 def tomogram(client: Client) -> Tomogram:
-    return next(Tomogram.find(client, [Tomogram.name == 'TS_026']))
+    return next(Tomogram.find(client, [Tomogram.name == 'TS_026', Tomogram.https_omezarr_dir.like("%13.480%")]))
