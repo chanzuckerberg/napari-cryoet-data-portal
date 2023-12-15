@@ -12,6 +12,8 @@ from cryoet_data_portal import Annotation, AnnotationFile, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
 
+from napari_cryoet_data_portal._logging import logger
+
 
 OBJECT_COLOR = {
     "ribosome": "red",

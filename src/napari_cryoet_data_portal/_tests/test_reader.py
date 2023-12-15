@@ -1,9 +1,9 @@
 import pytest
 from typing import Callable
 
+from cryoet_data_portal import Annotation
 from napari import Viewer
 from napari.layers import Points
-from cryoet_data_portal import Annotation
 
 from napari_cryoet_data_portal._reader import (
     read_annotation,
