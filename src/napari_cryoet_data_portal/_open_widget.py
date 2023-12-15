@@ -19,7 +19,7 @@ from cryoet_data_portal import Annotation, Client, Tomogram
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import (
-    read_annotation,
+    read_annotation_files,
     read_tomogram,
 )
 
@@ -165,15 +165,7 @@ class OpenWidget(QGroupBox):
         )
 
         for annotation in annotations:
-            point_paths = tuple(
-                f.https_path
-                for f in annotation.files
-                if f.shape_type == "Point"
-            )
-            if len(point_paths) > 0:
-                yield read_annotation(annotation, tomogram=tomogram)
-            else:
-                logger.warn("Found no points annotations. Skipping.")
+            yield from read_annotation_files(annotation, tomogram=tomogram)
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")
