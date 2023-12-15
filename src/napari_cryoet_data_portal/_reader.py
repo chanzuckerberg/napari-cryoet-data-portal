@@ -221,7 +221,7 @@ def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = No
     return data, attributes, layer_type
 
 
-def read_annotation_files(annotation: Annotation, *, tomogram: Optional[Tomogram] = None) -> Generator[None, None, FullLayerData]:
+def read_annotation_files(annotation: Annotation, *, tomogram: Optional[Tomogram] = None) -> Generator[FullLayerData, None, None]:
     """Reads multiple annotation layers.
 
     Parameters
@@ -272,7 +272,6 @@ def _read_labels_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
     assert anno_file.shape_type == "SegmentationMask"
     assert anno_file.format == "zarr"
     data, attributes, _ = read_tomogram_ome_zarr(anno_file.https_path)
-    data = [np.array(d > 0, dtype=np.uint8) for d in data]
     name = anno.object_name
     if tomogram is None:
         attributes["name"] = name
