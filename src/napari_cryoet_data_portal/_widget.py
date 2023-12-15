@@ -68,11 +68,11 @@ class DataPortalWidget(QWidget):
 
         self.setLayout(layout)
 
-    def _onUriConnected(self, uri: str) -> None:
+    def _onUriConnected(self, uri: str, filter: object) -> None:
         logger.debug("DataPortalWidget._onUriConnected")
         self._preview.setUri(uri)
         self._open.setUri(uri)
-        self._listing.load(uri)
+        self._listing.load(uri, filter=filter)
 
     def _onUriDisconnected(self) -> None:
         logger.debug("DataPortalWidget._onUriDisconnected")

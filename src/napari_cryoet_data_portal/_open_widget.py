@@ -5,6 +5,7 @@ import numpy as np
 from npe2.types import FullLayerData
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QGroupBox,
     QHBoxLayout,
@@ -94,8 +95,12 @@ class OpenWidget(QGroupBox):
         control_layout.addWidget(self.resolution_label)
         control_layout.addWidget(self.resolution)
 
+        self._clear_existing_layers = QCheckBox("Clear existing layers")
+        self._clear_existing_layers.setChecked(True)
+
         layout = QVBoxLayout()
         layout.addLayout(control_layout)
+        layout.addWidget(self._clear_existing_layers)
         layout.addWidget(self._progress)
         self.setLayout(layout)
 
@@ -118,7 +123,8 @@ class OpenWidget(QGroupBox):
         """Loads the current tomogram at the current resolution."""
         resolution = self.resolution.currentData()
         logger.debug("OpenWidget.load: %s", self._tomogram, resolution)
-        self._viewer.layers.clear()
+        if self._clear_existing_layers.isChecked():
+            self._viewer.layers.clear()
         self._progress.submit(self._tomogram, resolution)
 
     def cancel(self) -> None:
@@ -159,7 +165,15 @@ class OpenWidget(QGroupBox):
         )
 
         for annotation in annotations:
-            yield read_annotation(annotation, tomogram=tomogram)
+            point_paths = tuple(
+                f.https_path
+                for f in annotation.files
+                if f.shape_type == "Point"
+            )
+            if len(point_paths) > 0:
+                yield read_annotation(annotation, tomogram=tomogram)
+            else:
+                logger.warn("Found no points annotations. Skipping.")
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")
