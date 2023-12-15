@@ -1,15 +1,15 @@
 from typing import Generator, Optional, Tuple
 
 import numpy as np
-from qtpy.QtCore import QSize, Qt
-from qtpy.QtGui import QBitmap, QIcon
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QBitmap, QIcon, QImage
 from qtpy.QtWidgets import (
     QGroupBox,
     QListWidgetItem,
     QVBoxLayout,
     QWidget,
 )
-
+from skimage.io import imread
 from cryoet_data_portal import Client, Dataset, Run, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
@@ -63,9 +63,7 @@ class PreviewWidget(QGroupBox):
         for run in Run.find(client, [Run.dataset_id == dataset.id]):
             for spacing in run.tomogram_voxel_spacings:
                 for tomogram in spacing.tomograms:
-                    data, _, _ = read_tomogram(tomogram)
-                    # Materialize the lowest resolution level of the zarr for the preview.
-                    data = np.asarray(data[-1])
+                    data = imread(tomogram.key_photo_thumbnail_url)
                     yield tomogram, data
 
     def _onTomogramLoaded(self, result: Tuple[Tomogram, np.ndarray]) -> None:
@@ -78,21 +76,16 @@ class PreviewWidget(QGroupBox):
 
 
 def _make_tomogram_preview(data: np.ndarray) -> QIcon:
-    depth = data.shape[0]
-    mid_data = np.asarray(data[depth // 2, :, :])
-    preview_data = _normalize_data(mid_data)
-    bitmap = QBitmap.fromData(
-        QSize(*preview_data.shape),
-        preview_data,
-    )
+    if data.ndim == 2:
+        height, width = data.shape
+        image = QImage(data.data, width, height, width, QImage.Format_Mono)
+    elif data.ndim == 3:
+        height, width, depth = data.shape
+        assert depth == 3
+        row_bytes = depth * width
+        image = QImage(data.data, width, height, row_bytes, QImage.Format_RGB888)
+    else:
+        # TODO: at least log error.
+        return QIcon()
+    bitmap = QBitmap.fromImage(image)
     return QIcon(bitmap)
-
-
-def _normalize_data(data: np.ndarray) -> np.ndarray:
-    min_data = np.min(data)
-    max_data = np.max(data)
-    range_data = max_data - min_data
-    if range_data == 0:
-        return np.zeros(data.shape, dtype=np.uint8)
-    scaled_data = 255 * (data - min_data) / range_data
-    return scaled_data.astype(np.uint8)
