@@ -245,17 +245,16 @@ def read_annotation_files(annotation: Annotation, *, tomogram: Optional[Tomogram
             layer = Layer.create(data, attrs, typ)
     """
     for f in annotation.files:
-        if f.shape_type == "Point":
+        if (f.shape_type in ("Point", "OrientedPoint")) and (f.format == "ndjson"):
             yield _read_points_annotation_file(f, anno=annotation, tomogram=tomogram)
-        elif f.shape_type == "SegmentationMask":
-            if f.format == "zarr":
+        elif (f.shape_type == "SegmentationMask") and (f.format == "zarr"):
                 yield _read_labels_annotation_file(f, anno=annotation, tomogram=tomogram)
         else:
-            logger.warn("Found unsupported annotation file shape type: %s. Skipping.", f.shape_type)
+            logger.warn("Found unsupported annotation file: %s, %s. Skipping.", f.shape_type, f.format)
 
 
 def _read_points_annotation_file(anno_file: AnnotationFile, *, anno: Annotation, tomogram: Optional[Tomogram]) -> FullLayerData:
-    assert anno_file.shape_type == "Point"
+    assert anno_file.shape_type in ("Point", "OrientedPoint")
     assert anno_file.format == "ndjson"
     data, attributes, layer_type = read_points_annotations_ndjson(anno_file.https_path)
     name = anno.object_name
@@ -290,7 +289,7 @@ def _read_points_data(
         sub_data = [
             _annotation_to_point(annotation)
             for annotation in ndjson.load(f)
-            if annotation["type"] == "point"
+            if annotation["type"] in ("point", "orientedPoint")
         ]
         data.extend(sub_data)
     return data
