@@ -174,5 +174,7 @@ class OpenWidget(QGroupBox):
             self._viewer.add_image(data, **attrs)
         elif layer_type == "points":
             self._viewer.add_points(data, **attrs)
+        elif layer_type == "labels":
+            self._viewer.add_labels(data, **attrs)
         else:
             raise AssertionError(f"Unexpected {layer_type=}")

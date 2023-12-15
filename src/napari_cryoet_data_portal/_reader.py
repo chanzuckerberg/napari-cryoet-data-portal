@@ -4,6 +4,7 @@ import warnings
 from typing import Any, Dict, Generator, List, Optional, Tuple
 import fsspec
 
+import numpy as np
 import ndjson
 from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
@@ -246,11 +247,16 @@ def read_annotation_files(annotation: Annotation, *, tomogram: Optional[Tomogram
     for f in annotation.files:
         if f.shape_type == "Point":
             yield _read_points_annotation_file(f, anno=annotation, tomogram=tomogram)
+        elif f.shape_type == "SegmentationMask":
+            if f.format == "zarr":
+                yield _read_labels_annotation_file(f, anno=annotation, tomogram=tomogram)
         else:
             logger.warn("Found unsupported annotation file shape type: %s. Skipping.", f.shape_type)
 
 
 def _read_points_annotation_file(anno_file: AnnotationFile, *, anno: Annotation, tomogram: Optional[Tomogram]) -> FullLayerData:
+    assert anno_file.shape_type == "Point"
+    assert anno_file.format == "ndjson"
     data, attributes, layer_type = read_points_annotations_ndjson(anno_file.https_path)
     name = anno.object_name
     if tomogram is None:
@@ -260,6 +266,21 @@ def _read_points_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
     attributes["metadata"] = anno_file.to_dict()
     attributes["face_color"] = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
     return data, attributes, layer_type
+
+
+def _read_labels_annotation_file(anno_file: AnnotationFile, *, anno: Annotation, tomogram: Optional[Tomogram]) -> FullLayerData:
+    assert anno_file.shape_type == "SegmentationMask"
+    assert anno_file.format == "zarr"
+    data, attributes, _ = read_tomogram_ome_zarr(anno_file.https_path)
+    data = [np.array(d > 0, dtype=np.uint8) for d in data]
+    name = anno.object_name
+    if tomogram is None:
+        attributes["name"] = name
+    else:
+        attributes["name"] = f"{tomogram.name}-{name}"
+    attributes["metadata"] = anno_file.to_dict()
+    attributes["opacity"] = 0.5
+    return data, attributes, "labels"
 
 
 def _read_points_data(
