@@ -8,6 +8,8 @@ from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 from cryoet_data_portal import Annotation, Tomogram
 
+from napari_cryoet_data_portal._logging import logger
+
 
 OBJECT_COLOR = {
     "ribosome": "red",
@@ -195,7 +197,14 @@ def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = No
     >>> data, attrs, _ = read_annotation(annotation)
     >>> points = Points(data, **attrs)
     """
-    data, attributes, layer_type = read_points_annotations_ndjson(annotation.https_annotations_path)
+    point_paths = tuple(
+        f.https_path
+        for f in annotation.files
+        if f.shape_type == "Point"
+    )
+    if len(point_paths) > 1:
+        logger.warn("Found more than one points annotation. Using the first.")
+    data, attributes, layer_type = read_points_annotations_ndjson(point_paths[0])
     name = annotation.object_name
     if tomogram is None:
         attributes["name"] = name
