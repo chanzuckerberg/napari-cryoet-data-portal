@@ -21,13 +21,11 @@ def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
     client = Client()
 
     tomogram_spacing_url = f"https://files.cryoetdataportal.cziscience.com/10000/{name}/Tomograms/VoxelSpacing13.480/"
-    tomogram_spacing = next(
-        TomogramVoxelSpacing.find(
-            client, [TomogramVoxelSpacing.https_prefix == tomogram_spacing_url]
-        )
-    )
+    tomogram_spacing = TomogramVoxelSpacing.find(
+        client, [TomogramVoxelSpacing.https_prefix == tomogram_spacing_url]
+    ).pop()
 
-    tomogram: Tomogram = next(tomogram_spacing.tomograms)
+    tomogram: Tomogram = tomogram_spacing.tomograms.pop()
 
     tomogram_image = read_tomogram(tomogram)
     # Materialize lowest resolution for speed.
