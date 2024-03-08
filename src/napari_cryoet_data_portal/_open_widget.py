@@ -177,6 +177,8 @@ def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolutio
         data = data[resolution.indices[0]]
 
     # For explicit dtypes (e.g. labels), materialize data immediately.
+    # This is needed because the zarr labels annotations use a float32
+    # dtype. If they used an integer dtype, this could be removed.
     if dtype is not None:
         if resolution is MULTI_RESOLUTION:
             data = [np.asarray(d, dtype=dtype) for d in data]
