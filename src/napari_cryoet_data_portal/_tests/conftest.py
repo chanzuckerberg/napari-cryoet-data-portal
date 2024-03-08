@@ -10,15 +10,21 @@ def client() -> Client:
 
 @pytest.fixture()
 def dataset(client: Client) -> Dataset:
-    return next(Dataset.find(client, [Dataset.id == 10000]))
+    return Dataset.find(client, [Dataset.id == 10000]).pop()
 
 
 @pytest.fixture()
 def tomogram(client: Client) -> Tomogram:
-    return next(Tomogram.find(client, [Tomogram.name == 'TS_026', Tomogram.https_omezarr_dir.like("%13.480%")]))
+    return Tomogram.find(
+        client,
+        [
+            Tomogram.name == "TS_026",
+            Tomogram.https_omezarr_dir.like("%13.480%"),
+        ],
+    ).pop()
 
 
 @pytest.fixture()
 def annotation_with_points(client: Client) -> Annotation:
-    anno_file = next(AnnotationFile.find(client, [AnnotationFile.shape_type == "Point"]))
+    anno_file = AnnotationFile.find(client, [AnnotationFile.shape_type == "Point"]).pop()
     return anno_file.annotation
