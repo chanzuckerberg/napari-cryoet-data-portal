@@ -146,8 +146,10 @@ class OpenWidget(QGroupBox):
         # Materialize low resolution immediately on this thread to prevent napari blocking.
         if resolution is LOW_RESOLUTION:
             image_data = np.asarray(image_data)
+        # Get scale before resolution scaling for annotations.
+        image_scale = image_attrs["scale"]
         image_attrs["scale"] = tuple(
-            resolution.scale * s for s in image_attrs["scale"]
+            resolution.scale * s for s in image_scale
         )
         image_translate = image_attrs.get("translate", (0,) * len(image_attrs["scale"]))
         image_attrs["translate"] = tuple(
@@ -171,7 +173,13 @@ class OpenWidget(QGroupBox):
                 if f.shape_type == "Point"
             )
             if len(point_paths) > 0:
-                yield read_annotation(annotation, tomogram=tomogram)
+                anno_data, anno_attrs, anno_type = read_annotation(annotation, tomogram=tomogram)
+                # Inherit scale from full resolution image so that we can pick up
+                # that scale when it changes.
+                anno_attrs["scale"] = image_scale
+                # Scaling points also changes the size, so adjust accordingly.
+                anno_attrs["size"] /= np.mean(image_scale)
+                yield anno_data, anno_attrs, anno_type
             else:
                 logger.warn("Found no points annotations. Skipping.")
 
