@@ -34,16 +34,6 @@ class Resolution:
     indices: Tuple[int, ...]
     scale: float
 
-    @property
-    def offset(self) -> float:
-        """The offset due to a larger first pixel for lower resolutions.
-
-        When visualized in napari, this ensures that the different multi-scale
-        layers opened separately share the same visual extent in the canvas that
-        starts at (-0.5, -0.5, -0.5).
-        """
-        return (self.scale - 1) / 2
-
 
 MULTI_RESOLUTION = Resolution(name="Multi", indices=(0, 1, 2), scale=1)
 HIGH_RESOLUTION = Resolution(name="High", indices=(0,), scale=1)
@@ -152,8 +142,12 @@ class OpenWidget(QGroupBox):
             resolution.scale * s for s in image_scale
         )
         image_translate = image_attrs.get("translate", (0,) * len(image_attrs["scale"]))
+        # Offset the translation due to a larger first pixel for lower resolutions.
+        # When visualized in napari, this ensures that the different multi-scale
+        # layers opened separately share the same visual extent in the canvas that
+        # starts at some scaled version of (-0.5, -0.5, -0.5).
         image_attrs["translate"] = tuple(
-            resolution.offset + t for t in image_translate
+            (s * (resolution.scale - 1) / 2) + t for s, t in zip(image_scale, image_translate)
         )
         yield image_data, image_attrs, "image"
 
@@ -174,8 +168,11 @@ class OpenWidget(QGroupBox):
             )
             if len(point_paths) > 0:
                 anno_data, anno_attrs, anno_type = read_annotation(annotation, tomogram=tomogram)
-                # Inherit scale from full resolution image so that we can pick up
-                # that scale when it changes.
+                # Points data is defined in the data space of the highest resolution
+                # image, so also apply the translation from the image.
+                anno_attrs["translate"] = image_translate
+                # Inherit scale from full resolution image, so that points are visually
+                # aligned with the image.
                 anno_attrs["scale"] = image_scale
                 # Scaling points also changes the size, so adjust accordingly.
                 anno_attrs["size"] /= np.mean(image_scale)
