@@ -34,16 +34,6 @@ class Resolution:
     indices: Tuple[int, ...]
     scale: float
 
-    @property
-    def offset(self) -> float:
-        """The offset due to a larger first pixel for lower resolutions.
-
-        When visualized in napari, this ensures that the different multi-scale
-        layers opened separately share the same visual extent in the canvas that
-        starts at (-0.5, -0.5, -0.5).
-        """
-        return (self.scale - 1) / 2
-
 
 MULTI_RESOLUTION = Resolution(name="Multi", indices=(0, 1, 2), scale=1)
 HIGH_RESOLUTION = Resolution(name="High", indices=(0,), scale=1)
@@ -139,7 +129,8 @@ class OpenWidget(QGroupBox):
     ) -> Generator[FullLayerData, None, None]:
         logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
         image_layer = read_tomogram(tomogram)
-        # Extract image_scale before the resolution is taken into account.
+        # Extract image_scale before the resolution is taken into account,
+        # so we can use it to align other annotations later.
         image_scale = image_layer[1]["scale"]
         yield _handle_image_at_resolution(image_layer, resolution)
 
@@ -155,9 +146,9 @@ class OpenWidget(QGroupBox):
         for annotation in annotations:
             for layer in read_annotation_files(annotation, tomogram=tomogram):
                 if layer[2] == "labels":
-                    layer = _handle_image_at_resolution(layer, resolution=resolution)
+                    layer = _handle_image_at_resolution(layer, resolution)
                 elif layer[2] == "points":
-                    layer = _handle_points_annotation(layer, image_scale)
+                    layer = _handle_points_at_scale(layer, image_scale)
                 yield layer
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
@@ -186,17 +177,25 @@ def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolutio
         data = np.asarray(data)
 
     # Adjust the scale and and translation based on the resolution.
-    attrs["scale"] = tuple(resolution.scale * s for s in attrs["scale"])
-    image_translate = attrs.get("translate", (0,) * len(attrs["scale"]))
-    attrs["translate"] = tuple(resolution.offset + t for t in image_translate)
+    image_scale = attrs["scale"]
+    attrs["scale"] = tuple(resolution.scale * s for s in image_scale)
+    # Offset the translation due to a larger first pixel for lower resolutions.
+    # When visualized in napari, this ensures that the different multi-scale
+    # layers opened separately share the same visual extent in the canvas that
+    # starts at some scaled version of (-0.5, -0.5, -0.5).
+    image_translate = attrs.get("translate", (0,) * len(image_scale))
+    attrs["translate"] = tuple(
+        (s * (resolution.scale - 1) / 2) + t
+        for s, t in zip(image_scale, image_translate)
+    )
     return data, attrs, layer_type
 
 
-def _handle_points_annotation(layer_data: FullLayerData, image_scale: Tuple[float, float, float]) -> FullLayerData:
+def _handle_points_at_scale(layer_data: FullLayerData, image_scale: Tuple[float, float, float]) -> FullLayerData:
     data, attrs, layer_type = layer_data
-    # Inherit scale from full resolution image so that we can pick up
-    # that scale when it changes.
+    # Inherit scale from full resolution image, so that points are visually
+    # aligned with the image.
     attrs["scale"] = image_scale
     # Scaling points also changes the size, so adjust accordingly.
     attrs["size"] /= np.mean(image_scale)
-    return data, attrs, layer_type 
+    return data, attrs, layer_type
