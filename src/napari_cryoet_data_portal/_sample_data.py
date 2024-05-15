@@ -30,18 +30,18 @@ def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
     tomogram_image = read_tomogram(tomogram)
     # Materialize lowest resolution for speed.
     tomogram_image = (np.asarray(tomogram_image[0][-1]), *tomogram_image[1:])
-    tomogram_image[1]["scale"] = (4, 4, 4)
+    tomogram_image[1]["scale"] = tuple(4 * s for s in tomogram_image[1]["scale"])
 
     annotations = tuple(tomogram_spacing.annotations)
     ribosome_annotations = [
         item
         for item in annotations
-        if item.object_name.lower() == "cytosolic ribosome"
+        if "cytosolic ribosome" in item.object_name.lower()
     ].pop()
     fas_annotations = [
         item
         for item in annotations
-        if item.object_name.lower() == "fatty acid synthase"
+        if "fatty acid synthase" in item.object_name.lower()
     ].pop()
     ribosome_points = read_annotation(ribosome_annotations, tomogram=tomogram)
     fatty_acid_points = read_annotation(fas_annotations, tomogram=tomogram)

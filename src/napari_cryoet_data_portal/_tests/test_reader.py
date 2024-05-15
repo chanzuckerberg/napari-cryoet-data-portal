@@ -1,5 +1,6 @@
 from typing import Callable
 
+import numpy as np
 from napari import Viewer
 from napari.layers import Points
 
@@ -22,7 +23,7 @@ def test_read_tomogram_ome_zarr():
     assert data[0].shape == (1000, 928, 960)
     assert data[1].shape == (500, 464, 480)
     assert data[2].shape == (250, 232, 240)
-    assert attrs["scale"] == (1, 1, 1)
+    np.testing.assert_allclose(attrs["scale"], (13.48, 13.48, 13.48), atol=0.01)
     assert layer_type == "image"
 
 
