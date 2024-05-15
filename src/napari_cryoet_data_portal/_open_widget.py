@@ -155,7 +155,7 @@ class OpenWidget(QGroupBox):
         for annotation in annotations:
             for layer in read_annotation_files(annotation, tomogram=tomogram):
                 if layer[2] == "labels":
-                    layer = _handle_image_at_resolution(layer, resolution=resolution, dtype=np.uint8)
+                    layer = _handle_image_at_resolution(layer, resolution=resolution)
                 elif layer[2] == "points":
                     layer = _handle_points_annotation(layer, image_scale)
                 yield layer
@@ -173,26 +173,19 @@ class OpenWidget(QGroupBox):
             raise AssertionError(f"Unexpected {layer_type=}")
 
 
-def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolution, *, dtype = None) -> FullLayerData:
+def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolution) -> FullLayerData:
     data, attrs, layer_type = layer_data
     # Skip indexing for multi-resolution to avoid adding any
     # unnecessary nodes to the dask compute graph.
     if resolution is not MULTI_RESOLUTION:
         data = data[resolution.indices[0]]
 
-    # For explicit dtypes (e.g. labels), materialize data immediately.
-    # This is needed because the zarr labels annotations use a float32
-    # dtype. If they used an integer dtype, this could be removed.
-    if dtype is not None:
-        if resolution is MULTI_RESOLUTION:
-            data = [np.asarray(d, dtype=dtype) for d in data]
-        else:
-            data = np.asarray(data, dtype=dtype)
-
     # Materialize low resolution immediately on this thread to prevent napari blocking.
     # Once async loading is working on a stable napari release, we could remove this.
     if resolution is LOW_RESOLUTION:
         data = np.asarray(data)
+
+    # Adjust the scale and and translation based on the resolution.
     attrs["scale"] = tuple(resolution.scale * s for s in attrs["scale"])
     image_translate = attrs.get("translate", (0,) * len(attrs["scale"]))
     attrs["translate"] = tuple(resolution.offset + t for t in image_translate)
