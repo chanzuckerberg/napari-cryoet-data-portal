@@ -9,18 +9,63 @@ import ndjson
 from napari_ome_zarr import napari_get_reader
 from npe2.types import FullLayerData, PathOrPaths, ReaderFunction
 from cryoet_data_portal import Annotation, AnnotationFile, Tomogram
+from cmap import Colormap
+from napari.utils.colormaps import direct_colormap
 
 from napari_cryoet_data_portal._logging import logger
 
-from napari_cryoet_data_portal._logging import logger
-
-
-OBJECT_COLOR = {
-    "ribosome": "red",
-    "ribosome, 80 s": "red",
-    "fatty acid synthase": "darkblue",
+# Maps Annotation.object_name to a color.
+# The object names were manually generated using the following code.
+#
+# from cryoet_data_portal import Annotation, Client
+# client = Client()
+# annotations = Annotation.find(client)
+# names = tuple(a.object_name for a in annotations)
+#
+# TODO: add a tool to update these or do this automatically when
+# starting the plugin.
+OBJECT_NAMES = (
+    "Dynein-1b",
+    "F1-F0-ATPase complex",
+    "Golgi apparatus",
+    "IFT-A",
+    "IFT-B",
+    "MTD sleeve",
+    "MTD stellate / Y-shaped link",
+    "RubisCO complex",
+    "SARS-CoV2 spike protein",
+    "Y-shaped link",
+    "actin filament",
+    "cytoplasm",
+    "cytosolic ribosome",
+    "endoplasmic reticulum",
+    "endoplasmic reticulum membrane",
+    "fatty acid synthase complex",
+    "hydrogen-dependent CO2 reductase filament",
+    "lipid droplet",
+    "membrane",
+    "membrane-enclosed lumen",
+    "microtubule",
+    "microtubule doublet 48 nm repeat",
+    "microtubule doublet 96 nm repeat",
+    "mitochondrial F1-F0-ATPase complex",
+    "mitochondrial inner membrane",
+    "mitochondrial outer membrane",
+    "mitochondrion",
+    "multivesicular body",
+    "nuclear envelope",
+    "nucleosome",
+    "nucleus",
+    "stellate",
+    "vacuole",
+    "vesicle",
+)
+OBJECT_COLORMAP = Colormap("colorbrewer:set1_8")
+OBJECT_COLOR: Dict[str, np.ndarray] = {
+    name: np.array(OBJECT_COLORMAP(index % len(OBJECT_COLORMAP.color_stops.stops)).rgba)
+    for index, name in enumerate(OBJECT_NAMES)
 }
-DEFAULT_OBJECT_COLOR = "red"
+DEFAULT_OBJECT_COLOR = np.array(OBJECT_COLORMAP(0).rgba)
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -171,7 +216,7 @@ def read_points_annotations_ndjson(path: str) -> FullLayerData:
     attributes = {
         "name": "annotations",
         "size": 14,
-        "face_color": "red",
+        "face_color": DEFAULT_OBJECT_COLOR,
         "opacity": 0.5,
         # Disable out-of-slice display because of:
         # https://github.com/napari/napari/issues/6914
@@ -221,7 +266,7 @@ def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = No
     else:
         attributes["name"] = f"{tomogram.name}-{name}"
     attributes["metadata"] = annotation.to_dict()
-    attributes["face_color"] = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
+    attributes["face_color"] = OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
     return data, attributes, layer_type
 
 
@@ -267,7 +312,7 @@ def _read_points_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
     else:
         attributes["name"] = f"{tomogram.name}-{name}"
     attributes["metadata"] = anno_file.to_dict()
-    attributes["face_color"] = OBJECT_COLOR.get(name.lower(), DEFAULT_OBJECT_COLOR)
+    attributes["face_color"] = OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
     return data, attributes, layer_type
 
 
@@ -282,6 +327,10 @@ def _read_labels_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
         attributes["name"] = f"{tomogram.name}-{name}"
     attributes["metadata"] = anno_file.to_dict()
     attributes["opacity"] = 0.5
+    attributes["colormap"] = direct_colormap({
+        None: np.zeros(4),
+        1: OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR),
+    })
     return data, attributes, "labels"
 
 
