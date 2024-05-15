@@ -173,7 +173,9 @@ def read_points_annotations_ndjson(path: str) -> FullLayerData:
         "size": 14,
         "face_color": "red",
         "opacity": 0.5,
-        "out_of_slice_display": True,
+        # Disable out-of-slice display because of:
+        # https://github.com/napari/napari/issues/6914
+        "out_of_slice_display": False,
     }
     return data, attributes, "points"
 

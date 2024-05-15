@@ -139,6 +139,8 @@ class OpenWidget(QGroupBox):
     ) -> Generator[FullLayerData, None, None]:
         logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
         image_layer = read_tomogram(tomogram)
+        # Extract image_scale before the resolution is taken into account.
+        image_scale = image_layer[1]["scale"]
         yield _handle_image_at_resolution(image_layer, resolution)
 
         # Looking up tomogram.tomogram_voxel_spacing.annotations triggers a query
@@ -154,6 +156,8 @@ class OpenWidget(QGroupBox):
             for layer in read_annotation_files(annotation, tomogram=tomogram):
                 if layer[2] == "labels":
                     layer = _handle_image_at_resolution(layer, resolution=resolution, dtype=np.uint8)
+                elif layer[2] == "points":
+                    layer = _handle_points_annotation(layer, image_scale)
                 yield layer
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
@@ -193,3 +197,13 @@ def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolutio
     image_translate = attrs.get("translate", (0,) * len(attrs["scale"]))
     attrs["translate"] = tuple(resolution.offset + t for t in image_translate)
     return data, attrs, layer_type
+
+
+def _handle_points_annotation(layer_data: FullLayerData, image_scale: Tuple[float, float, float]) -> FullLayerData:
+    data, attrs, layer_type = layer_data
+    # Inherit scale from full resolution image so that we can pick up
+    # that scale when it changes.
+    attrs["scale"] = image_scale
+    # Scaling points also changes the size, so adjust accordingly.
+    attrs["size"] /= np.mean(image_scale)
+    return data, attrs, layer_type 
