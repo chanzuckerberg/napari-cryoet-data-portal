@@ -297,7 +297,7 @@ def read_annotation_files(annotation: Annotation, *, tomogram: Optional[Tomogram
         if (f.shape_type in ("Point", "OrientedPoint")) and (f.format == "ndjson"):
             yield _read_points_annotation_file(f, anno=annotation, tomogram=tomogram)
         elif (f.shape_type == "SegmentationMask") and (f.format == "zarr"):
-                yield _read_labels_annotation_file(f, anno=annotation, tomogram=tomogram)
+            yield _read_labels_annotation_file(f, anno=annotation, tomogram=tomogram)
         else:
             logger.warn("Found unsupported annotation file: %s, %s. Skipping.", f.shape_type, f.format)
 
