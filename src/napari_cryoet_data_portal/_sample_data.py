@@ -36,12 +36,12 @@ def _read_tomogram_from_10000(name: str) -> List[FullLayerData]:
     ribosome_annotations = [
         item
         for item in annotations
-        if item.object_name.lower() == "cytosolic ribosome"
+        if "cytosolic ribosome" in item.object_name.lower()
     ].pop()
     fas_annotations = [
         item
         for item in annotations
-        if item.object_name.lower() == "fatty acid synthase"
+        if "fatty acid synthase" in item.object_name.lower()
     ].pop()
     ribosome_points = read_annotation(ribosome_annotations, tomogram=tomogram)
     fatty_acid_points = read_annotation(fas_annotations, tomogram=tomogram)

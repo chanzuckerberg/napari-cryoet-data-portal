@@ -19,7 +19,7 @@ from cryoet_data_portal import Annotation, Client, Tomogram
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
 from napari_cryoet_data_portal._reader import (
-    read_annotation,
+    read_annotation_files,
     read_tomogram,
 )
 
@@ -33,16 +33,6 @@ class Resolution:
     name: str
     indices: Tuple[int, ...]
     scale: float
-
-    @property
-    def offset(self) -> float:
-        """The offset due to a larger first pixel for lower resolutions.
-
-        When visualized in napari, this ensures that the different multi-scale
-        layers opened separately share the same visual extent in the canvas that
-        starts at (-0.5, -0.5, -0.5).
-        """
-        return (self.scale - 1) / 2
 
 
 MULTI_RESOLUTION = Resolution(name="Multi", indices=(0, 1, 2), scale=1)
@@ -138,24 +128,11 @@ class OpenWidget(QGroupBox):
         resolution: Resolution,
     ) -> Generator[FullLayerData, None, None]:
         logger.debug("OpenWidget._loadTomogram: %s", tomogram.name)
-        image_data, image_attrs, _ = read_tomogram(tomogram)
-        # Skip indexing for multi-resolution to avoid adding any
-        # unnecessary nodes to the dask compute graph.
-        if resolution is not MULTI_RESOLUTION:
-            image_data = image_data[resolution.indices[0]]
-        # Materialize low resolution immediately on this thread to prevent napari blocking.
-        if resolution is LOW_RESOLUTION:
-            image_data = np.asarray(image_data)
-        # Get scale before resolution scaling for annotations.
-        image_scale = image_attrs["scale"]
-        image_attrs["scale"] = tuple(
-            resolution.scale * s for s in image_scale
-        )
-        image_translate = image_attrs.get("translate", (0,) * len(image_attrs["scale"]))
-        image_attrs["translate"] = tuple(
-            resolution.offset + t for t in image_translate
-        )
-        yield image_data, image_attrs, "image"
+        image_layer = read_tomogram(tomogram)
+        # Extract image_scale before the resolution is taken into account,
+        # so we can use it to align other annotations later.
+        image_scale = image_layer[1]["scale"]
+        yield _handle_image_at_resolution(image_layer, resolution)
 
         # Looking up tomogram.tomogram_voxel_spacing.annotations triggers a query
         # using the client from where the tomogram was found.
@@ -167,21 +144,12 @@ class OpenWidget(QGroupBox):
         )
 
         for annotation in annotations:
-            point_paths = tuple(
-                f.https_path
-                for f in annotation.files
-                if f.shape_type == "Point"
-            )
-            if len(point_paths) > 0:
-                anno_data, anno_attrs, anno_type = read_annotation(annotation, tomogram=tomogram)
-                # Inherit scale from full resolution image so that we can pick up
-                # that scale when it changes.
-                anno_attrs["scale"] = image_scale
-                # Scaling points also changes the size, so adjust accordingly.
-                anno_attrs["size"] /= np.mean(image_scale)
-                yield anno_data, anno_attrs, anno_type
-            else:
-                logger.warn("Found no points annotations. Skipping.")
+            for layer in read_annotation_files(annotation, tomogram=tomogram):
+                if layer[2] == "labels":
+                    layer = _handle_image_at_resolution(layer, resolution)
+                elif layer[2] == "points":
+                    layer = _handle_points_at_scale(layer, image_scale)
+                yield layer
 
     def _onLayerLoaded(self, layer_data: FullLayerData) -> None:
         logger.debug("OpenWidget._onLayerLoaded")
@@ -190,5 +158,44 @@ class OpenWidget(QGroupBox):
             self._viewer.add_image(data, **attrs)
         elif layer_type == "points":
             self._viewer.add_points(data, **attrs)
+        elif layer_type == "labels":
+            self._viewer.add_labels(data, **attrs)
         else:
             raise AssertionError(f"Unexpected {layer_type=}")
+
+
+def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolution) -> FullLayerData:
+    data, attrs, layer_type = layer_data
+    # Skip indexing for multi-resolution to avoid adding any
+    # unnecessary nodes to the dask compute graph.
+    if resolution is not MULTI_RESOLUTION:
+        data = data[resolution.indices[0]]
+
+    # Materialize low resolution immediately on this thread to prevent napari blocking.
+    # Once async loading is working on a stable napari release, we could remove this.
+    if resolution is LOW_RESOLUTION:
+        data = np.asarray(data)
+
+    # Adjust the scale and and translation based on the resolution.
+    image_scale = attrs["scale"]
+    attrs["scale"] = tuple(resolution.scale * s for s in image_scale)
+    # Offset the translation due to a larger first pixel for lower resolutions.
+    # When visualized in napari, this ensures that the different multi-scale
+    # layers opened separately share the same visual extent in the canvas that
+    # starts at some scaled version of (-0.5, -0.5, -0.5).
+    image_translate = attrs.get("translate", (0,) * len(image_scale))
+    attrs["translate"] = tuple(
+        (s * (resolution.scale - 1) / 2) + t
+        for s, t in zip(image_scale, image_translate)
+    )
+    return data, attrs, layer_type
+
+
+def _handle_points_at_scale(layer_data: FullLayerData, image_scale: Tuple[float, float, float]) -> FullLayerData:
+    data, attrs, layer_type = layer_data
+    # Inherit scale from full resolution image, so that points are visually
+    # aligned with the image.
+    attrs["scale"] = image_scale
+    # Scaling points also changes the size, so adjust accordingly.
+    attrs["size"] /= np.mean(image_scale)
+    return data, attrs, layer_type

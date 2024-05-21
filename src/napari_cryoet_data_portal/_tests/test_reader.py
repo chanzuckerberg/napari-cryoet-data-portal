@@ -1,9 +1,14 @@
+import pytest
 from typing import Callable
 
+import numpy as np
+from cryoet_data_portal import Annotation
 from napari import Viewer
 from napari.layers import Points
 
-from napari_cryoet_data_portal import (
+from napari_cryoet_data_portal._reader import (
+    read_annotation,
+    read_annotation_files,
     read_points_annotations_ndjson,
     read_tomogram_ome_zarr,
 )
@@ -22,7 +27,7 @@ def test_read_tomogram_ome_zarr():
     assert data[0].shape == (1000, 928, 960)
     assert data[1].shape == (500, 464, 480)
     assert data[2].shape == (250, 232, 240)
-    assert attrs["scale"] == (1, 1, 1)
+    np.testing.assert_allclose(attrs["scale"], (13.48, 13.48, 13.48), atol=0.01)
     assert layer_type == "image"
 
 
@@ -44,3 +49,22 @@ def test_open_points_annotations(make_napari_viewer: Callable[[], Viewer]):
 
     assert len(layers) == 1
     assert isinstance(layers[0], Points)
+
+
+def test_read_annotation(annotation_with_points: Annotation):
+    with pytest.warns(DeprecationWarning):
+        data, attrs, layer_type = read_annotation(annotation_with_points)
+
+    assert len(data) > 0
+    assert len(attrs["name"]) > 0
+    assert layer_type == "points"
+
+
+def test_read_annotation_files(annotation_with_points: Annotation):
+    layers = list(read_annotation_files(annotation_with_points))
+
+    assert len(layers) == 1
+    data, attrs, layer_type = layers[0]
+    assert len(data) > 0
+    assert len(attrs["name"]) > 0
+    assert layer_type == "points"
