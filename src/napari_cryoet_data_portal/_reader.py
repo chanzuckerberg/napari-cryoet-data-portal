@@ -14,58 +14,21 @@ from napari.utils.colormaps import direct_colormap
 
 from napari_cryoet_data_portal._logging import logger
 
-# Maps Annotation.object_name to a color.
-# The object names were manually generated using the following code.
-#
-# from cryoet_data_portal import Annotation, Client
-# client = Client()
-# annotations = Annotation.find(client)
-# names = tuple(a.object_name for a in annotations)
-#
-# TODO: add a tool to update these or do this automatically when
-# starting the plugin.
-OBJECT_NAMES = (
-    "Dynein-1b",
-    "F1-F0-ATPase complex",
-    "Golgi apparatus",
-    "IFT-A",
-    "IFT-B",
-    "MTD sleeve",
-    "MTD stellate / Y-shaped link",
-    "RubisCO complex",
-    "SARS-CoV2 spike protein",
-    "Y-shaped link",
-    "actin filament",
-    "cytoplasm",
-    "cytosolic ribosome",
-    "endoplasmic reticulum",
-    "endoplasmic reticulum membrane",
-    "fatty acid synthase complex",
-    "hydrogen-dependent CO2 reductase filament",
-    "lipid droplet",
-    "membrane",
-    "membrane-enclosed lumen",
-    "microtubule",
-    "microtubule doublet 48 nm repeat",
-    "microtubule doublet 96 nm repeat",
-    "mitochondrial F1-F0-ATPase complex",
-    "mitochondrial inner membrane",
-    "mitochondrial outer membrane",
-    "mitochondrion",
-    "multivesicular body",
-    "nuclear envelope",
-    "nucleosome",
-    "nucleus",
-    "stellate",
-    "vacuole",
-    "vesicle",
-)
+# Maps integer value of Annotation.object_id to a color.
 OBJECT_COLORMAP = Colormap("colorbrewer:set1_8")
-OBJECT_COLOR: Dict[str, np.ndarray] = {
-    name: np.array(OBJECT_COLORMAP(index % len(OBJECT_COLORMAP.color_stops.stops)).rgba)
-    for index, name in enumerate(OBJECT_NAMES)
-}
+# Fallback color when ID cannot be parsed.
 DEFAULT_OBJECT_COLOR = np.array(OBJECT_COLORMAP(0).rgba)
+
+
+def _annotation_color(annotation: Annotation) -> np.ndarray:
+    """Maps an annotation to a color based on its object_id."""
+    try:
+        object_id = int(annotation.object_id.split(":")[-1])
+    except RuntimeError as e:
+        logger.error("Failed to parse integer from object_id: %s\%s", annotation.object_id, e)
+        return DEFAULT_OBJECT_COLOR
+    color = OBJECT_COLORMAP(object_id % len(OBJECT_COLORMAP.color_stops))
+    return np.array(color.rgba)
 
 
 def tomogram_ome_zarr_reader(path: PathOrPaths) -> Optional[ReaderFunction]:
@@ -266,7 +229,7 @@ def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = No
     else:
         attributes["name"] = f"{tomogram.name}-{name}"
     attributes["metadata"] = annotation.to_dict()
-    attributes["face_color"] = OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
+    attributes["face_color"] = _annotation_color(annotation)
     return data, attributes, layer_type
 
 
@@ -312,7 +275,7 @@ def _read_points_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
     else:
         attributes["name"] = f"{tomogram.name}-{name}"
     attributes["metadata"] = anno_file.to_dict()
-    attributes["face_color"] = OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR)
+    attributes["face_color"] = _annotation_color(anno)
     return data, attributes, layer_type
 
 
@@ -329,7 +292,7 @@ def _read_labels_annotation_file(anno_file: AnnotationFile, *, anno: Annotation,
     attributes["opacity"] = 0.5
     attributes["colormap"] = direct_colormap({
         None: np.zeros(4),
-        1: OBJECT_COLOR.get(name, DEFAULT_OBJECT_COLOR),
+        1: _annotation_color(anno),
     })
     return data, attributes, "labels"
 
