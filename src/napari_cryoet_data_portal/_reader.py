@@ -212,7 +212,7 @@ def read_annotation(annotation: Annotation, *, tomogram: Optional[Tomogram] = No
     >>> points = Points(data, **attrs)
     """
     warnings.warn(
-        "read_annotation is deprecated from v0.3.0 because of Annotation schema changes. "
+        "read_annotation is deprecated from v0.4.0 because of Annotation schema changes. "
         "Use read_annotation_files instead.",
         category=DeprecationWarning)
     point_paths = tuple(
