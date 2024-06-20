@@ -1,7 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Generator, List, Protocol, Tuple, Type, Union
+from typing import TYPE_CHECKING, Dict, Generator, List, Protocol, Set, Tuple, Type, TypeVar, Union
 
 from cryoet_data_portal import Client, Dataset, Run, Tomogram, TomogramVoxelSpacing
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Filter(Protocol):
-    def load(self, client: Client) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    def load(self, client: Client) -> Generator[Dataset, None, None]:
         """Load the datasets and tomograms that match this filter."""
         ...
 
@@ -20,63 +20,44 @@ class Filter(Protocol):
 class DatasetFilter:
     ids: Tuple[int, ...] = ()
 
-    def load(self, client: Client) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
+    def load(self, client: Client) -> Generator[Dataset, None, None]:
         gql_filters = _ids_to_gql(Dataset.id, self.ids)
-        for dataset in Dataset.find(client, gql_filters):
-            tomograms: List[Tomogram] = []
-            for run in dataset.runs:
-                for spacing in run.tomogram_voxel_spacings:
-                    tomograms.extend(spacing.tomograms)
-            yield dataset, tomograms
+        yield from Dataset.find(client, gql_filters)
 
 
 @dataclass(frozen=True)
 class RunFilter:
     ids: Tuple[int, ...] = ()
 
-    def load(self, client: Client) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
-        datasets: Dict[int, Dataset] = {}
-        tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
+    def load(self, client: Client) -> Generator[Dataset, None, None]:
+        datasets: Set[Dataset] = set()
         gql_filters = _ids_to_gql(Run.id, self.ids)
         for run in Run.find(client, gql_filters):
-            dataset = run.dataset
-            datasets[dataset.id] = dataset
-            for spacing in run.tomogram_voxel_spacings:
-                tomograms[dataset.id].extend(spacing.tomograms)
-        for i in datasets:
-            yield datasets[i], tomograms[i]
+            datasets += run.dataset
+        yield from datasets
 
 
 @dataclass(frozen=True)
 class SpacingFilter:
     ids: Tuple[int, ...] = ()
 
-    def load(self, client: Client) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
-        datasets: Dict[int, Dataset] = {}
-        tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
+    def load(self, client: Client) -> Generator[Dataset, None, None]:
+        datasets: Set[Dataset] = set()
         gql_filters = _ids_to_gql(TomogramVoxelSpacing.id, self.ids)
         for spacing in TomogramVoxelSpacing.find(client, gql_filters):
-            dataset = spacing.run.dataset
-            datasets[dataset.id] = dataset
-            tomograms[dataset.id].extend(spacing.tomograms)
-        for i in datasets:
-            yield datasets[i], tomograms[i]
-
+            datasets += spacing.run.dataset
+        yield from datasets
 
 @dataclass(frozen=True)
 class TomogramFilter:
     ids: Tuple[int, ...] = ()
 
-    def load(self, client: Client) -> Generator[Tuple[Dataset, List[Tomogram]], None, None]:
-        datasets: Dict[int, Dataset] = {}
-        tomograms: Dict[int, List[Tomogram]] = defaultdict(list)
+    def load(self, client: Client) -> Generator[Dataset, None, None]:
+        datasets: Set[Dataset] = set()
         gql_filters = _ids_to_gql(Tomogram.id, self.ids)
         for tomogram in Tomogram.find(client, gql_filters):
-            dataset = tomogram.tomogram_voxel_spacing.run.dataset
-            datasets[dataset.id] = dataset
-            tomograms[dataset.id].append(tomogram)
-        for i in datasets:
-            yield datasets[i], tomograms[i]
+            datasets += tomogram.tomogram_voxel_spacing.run.dataset
+        yield from datasets
 
 
 def make_filter(type: Union[Type[Dataset], Type[Run], Type[TomogramVoxelSpacing], Type[Tomogram]], ids: Tuple[int, ...]) -> Filter:
