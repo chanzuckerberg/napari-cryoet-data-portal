@@ -22,8 +22,11 @@ DEFAULT_OBJECT_COLOR = np.array(OBJECT_COLORMAP(0).rgba)
 
 def _annotation_color(annotation: Annotation) -> np.ndarray:
     """Maps an annotation to a color based on its object_id."""
-    object_id = annotation.object_id.split(":")[-1]
-    color = OBJECT_COLORMAP(hash(object_id) % len(OBJECT_COLORMAP.color_stops))
+    try:
+        object_id = int(annotation.object_id.split(":")[-1])
+    except ValueError as e:
+        object_id = hash(annotation.object_id.split(":")[-1])
+    color = OBJECT_COLORMAP(object_id % len(OBJECT_COLORMAP.color_stops))
     return np.array(color.rgba)
 
 
