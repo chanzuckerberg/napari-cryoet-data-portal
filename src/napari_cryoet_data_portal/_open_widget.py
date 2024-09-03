@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from functools import cache
+from functools import lru_cache
 from typing import TYPE_CHECKING, Generator, Optional, Tuple
 
 import numpy as np
@@ -210,7 +210,7 @@ def _handle_points_at_scale(
     return data, attrs, layer_type
 
 
-@cache
+@lru_cache(maxsize=None)
 def _is_napari_version_less_than(version: str) -> bool:
     try:
         import napari
@@ -229,8 +229,10 @@ def _is_napari_version_less_than(version: str) -> bool:
             "Failed to parse actual napari version from %s ",
             napari.__version__,
         )
+        return False
     try:
         target_version = Version(version)
     except InvalidVersion:
         logger.warn("Failed to parse target napari version from %s", version)
+        return False
     return actual_version < target_version
