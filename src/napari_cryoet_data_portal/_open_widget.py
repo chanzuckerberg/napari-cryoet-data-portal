@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from functools import cache
 from typing import TYPE_CHECKING, Generator, Optional, Tuple
 
 import numpy as np
+from cryoet_data_portal import Annotation, Client, Tomogram
 from npe2.types import FullLayerData
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -14,7 +16,6 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from cryoet_data_portal import Annotation, Client, Tomogram
 
 from napari_cryoet_data_portal._logging import logger
 from napari_cryoet_data_portal._progress_widget import ProgressWidget
@@ -139,8 +140,11 @@ class OpenWidget(QGroupBox):
         # A single client is not thread safe, so we need a new instance for each query.
         client = Client(self._uri)
         annotations = Annotation.find(
-            client, 
-            [Annotation.tomogram_voxel_spacing_id == tomogram.tomogram_voxel_spacing_id],
+            client,
+            [
+                Annotation.tomogram_voxel_spacing_id
+                == tomogram.tomogram_voxel_spacing_id
+            ],
         )
 
         for annotation in annotations:
@@ -164,7 +168,9 @@ class OpenWidget(QGroupBox):
             raise AssertionError(f"Unexpected {layer_type=}")
 
 
-def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolution) -> FullLayerData:
+def _handle_image_at_resolution(
+    layer_data: FullLayerData, resolution: Resolution
+) -> FullLayerData:
     data, attrs, layer_type = layer_data
     # Skip indexing for multi-resolution to avoid adding any
     # unnecessary nodes to the dask compute graph.
@@ -191,11 +197,40 @@ def _handle_image_at_resolution(layer_data: FullLayerData, resolution: Resolutio
     return data, attrs, layer_type
 
 
-def _handle_points_at_scale(layer_data: FullLayerData, image_scale: Tuple[float, float, float]) -> FullLayerData:
+def _handle_points_at_scale(
+    layer_data: FullLayerData, image_scale: Tuple[float, float, float]
+) -> FullLayerData:
     data, attrs, layer_type = layer_data
     # Inherit scale from full resolution image, so that points are visually
     # aligned with the image.
     attrs["scale"] = image_scale
-    # Scaling points also changes the size, so adjust accordingly.
-    attrs["size"] /= np.mean(image_scale)
+    # Scaling points also changes the size in some version of napari, so adjust accordingly.
+    if _is_napari_version_less_than("0.5"):
+        attrs["size"] /= np.mean(image_scale)
     return data, attrs, layer_type
+
+
+@cache
+def _is_napari_version_less_than(version: str) -> bool:
+    try:
+        import napari
+    except ImportError:
+        logger.warn("Failed to import napari")
+        return False
+    try:
+        from packaging.version import InvalidVersion, Version
+    except ImportError:
+        logger.warn("Failed to import packaging")
+        return False
+    try:
+        actual_version = Version(napari.__version__)
+    except InvalidVersion:
+        logger.warn(
+            "Failed to parse actual napari version from %s ",
+            napari.__version__,
+        )
+    try:
+        target_version = Version(version)
+    except InvalidVersion:
+        logger.warn("Failed to parse target napari version from %s", version)
+    return actual_version < target_version
